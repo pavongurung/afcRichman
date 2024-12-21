@@ -70,8 +70,11 @@ if not df.empty:
     numeric_cols = df.select_dtypes(include=["number"]).columns
     for col in numeric_cols:
         min_val, max_val = df[col].min(), df[col].max()
-        selected_range = st.sidebar.slider(f"Filter {col}", min_val, max_val, (min_val, max_val))
-        filtered_df = filtered_df[(filtered_df[col] >= selected_range[0]) & (filtered_df[col] <= selected_range[1])]
+        if min_val < max_val:  # Ensure valid range
+            selected_range = st.sidebar.slider(f"Filter {col}", min_val, max_val, (min_val, max_val))
+            filtered_df = filtered_df[(filtered_df[col] >= selected_range[0]) & (filtered_df[col] <= selected_range[1])]
+        else:
+            st.sidebar.text(f"{col}: All values are {min_val}. No slider applied.")
 
     # Add Search Box for Text Filters
     text_cols = df.select_dtypes(include=["object"]).columns
@@ -86,9 +89,7 @@ if not df.empty:
     # Tab 1: Overview
     with tab1:
         st.header("Overview")
-        st.dataframe(df, column_config={
-            "Name": st.column_config.Column(pinned=True),
-        },)     
+        st.dataframe(df)
 
         # Stats Summary
         st.subheader("Interactive Stats Summary")
