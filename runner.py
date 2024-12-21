@@ -4,7 +4,7 @@ import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="Sidemen Among Us Stats",
+    page_title="aFc Richman Stats",
     layout="wide"
 )
 
