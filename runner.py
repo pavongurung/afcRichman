@@ -4,7 +4,7 @@ import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="Sidemen Among Us Stats",
+    page_title="aFc Richman Stats",
     layout="wide"
 )
 
@@ -27,11 +27,8 @@ def convert_df_to_csv(data):
     return data.to_csv(index=False).encode('utf-8')
 
 # --- App Layout ---
-st.title("Sidemen Among Us Stats")
+st.title("aFc Richman Stats")
 st.caption("Explore and analyze player stats dynamically with filters and interactive visuals.")
-
-# --- Sidebar Filters ---
-st.sidebar.header("Filter Options")
 
 # Light/Dark Mode Toggle
 theme = st.sidebar.radio("Select Theme", ["Light", "Dark"])
