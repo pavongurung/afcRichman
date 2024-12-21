@@ -17,7 +17,7 @@ def fetch_data(sheet_url: str):
         return pd.DataFrame()
 
 # --- Updated Google Sheet CSV URL ---
-sheet_url = "https://docs.google.com/spreadsheets/d/1aKCsHnXQmets1RcIyVlVQy3sjClMQ3VGQeBEmwcb_eA/export?format=csv"
+sheet_url = "https://docs.google.com/spreadsheets/d/1g3Esmr1-Z5jt5_mqOv9-f9fvyFezgT_2Z-8G7w5ChSU/export?format=csv"
 
 # Fetch data from the Google Sheet
 df = fetch_data(sheet_url)
