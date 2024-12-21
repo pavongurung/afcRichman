@@ -4,7 +4,7 @@ import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="aFc Richman Stats",
+    page_title="Sidemen Among Us Stats",
     layout="wide"
 )
 
@@ -17,7 +17,7 @@ def fetch_data(sheet_url: str):
         return pd.DataFrame()
 
 # --- Updated Google Sheet CSV URL ---
-sheet_url = "https://docs.google.com/spreadsheets/d/1aKCsHnXQmets1RcIyVlVQy3sjClMQ3VGQeBEmwcb_eA/export?format=csv"
+sheet_url = "https://docs.google.com/spreadsheets/d/1g3Esmr1-Z5jt5_mqOv9-f9fvyFezgT_2Z-8G7w5ChSU/export?format=csv"
 
 # Fetch data from the Google Sheet
 df = fetch_data(sheet_url)
@@ -27,7 +27,7 @@ def convert_df_to_csv(data):
     return data.to_csv(index=False).encode('utf-8')
 
 # --- App Layout ---
-st.title("aFc Richman Stats")
+st.title("Sidemen Among Us Stats")
 st.caption("Explore and analyze player stats dynamically with filters and interactive visuals.")
 
 # --- Sidebar Filters ---
@@ -70,11 +70,8 @@ if not df.empty:
     numeric_cols = df.select_dtypes(include=["number"]).columns
     for col in numeric_cols:
         min_val, max_val = df[col].min(), df[col].max()
-        if min_val < max_val:  # Ensure valid range
-            selected_range = st.sidebar.slider(f"Filter {col}", min_val, max_val, (min_val, max_val))
-            filtered_df = filtered_df[(filtered_df[col] >= selected_range[0]) & (filtered_df[col] <= selected_range[1])]
-        else:
-            st.sidebar.text(f"{col}: All values are {min_val}. No slider applied.")
+        selected_range = st.sidebar.slider(f"Filter {col}", min_val, max_val, (min_val, max_val))
+        filtered_df = filtered_df[(filtered_df[col] >= selected_range[0]) & (filtered_df[col] <= selected_range[1])]
 
     # Add Search Box for Text Filters
     text_cols = df.select_dtypes(include=["object"]).columns
@@ -89,7 +86,9 @@ if not df.empty:
     # Tab 1: Overview
     with tab1:
         st.header("Overview")
-        st.dataframe(df)
+        st.dataframe(df, column_config={
+            "Name": st.column_config.Column(pinned=True),
+        },)     
 
         # Stats Summary
         st.subheader("Interactive Stats Summary")
