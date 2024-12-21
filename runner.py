@@ -39,7 +39,7 @@ if not df.empty:
         df[col].fillna(0, inplace=True)  # Replace NaN with 0
     
     # --- Tabs for Navigation ---
-    tab1, tab2 = st.tabs(["Overview", "Charts"])
+    tab1, tab2, tab3 = st.tabs(["Overview", "Charts", "Club"])
 
     # Tab 1: Overview
     with tab1:
@@ -94,6 +94,30 @@ if not df.empty:
                 fig = px.scatter(**chart_kwargs)
 
             st.plotly_chart(fig, use_container_width=True)
+
+    # Tab 3: Club Section
+    with tab3:
+        st.header("Club Information")
+        
+        # Add Club Description
+        st.markdown(
+            """
+            Explore detailed stats and league matches for the club.
+            Use the link below to view the Club League Matches on Pro Clubs Head:
+            """
+        )
+
+        # Add Clickable Link
+        st.markdown("[View Club League Matches](https://proclubshead.com/25/club-league-matches/gen5-353675/)")
+
+        # Embed the Website (Optional)
+        st.markdown(
+            """
+            <iframe src="https://proclubshead.com/25/club-league-matches/gen5-353675/" 
+            width="100%" height="600" frameborder="0"></iframe>
+            """,
+            unsafe_allow_html=True
+        )
 else:
     st.warning("No data available. Please check the Google Sheet URL or try again later.")
 
