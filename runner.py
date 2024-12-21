@@ -50,6 +50,9 @@ if not df.empty:
             </h1>
         """, unsafe_allow_html=True)
 
+        # Adjust numbering to start from 1
+        df.index = df.index + 1  # Adjust DataFrame index to start from 1
+
         # Expanded DataFrame Display
         st.subheader("Player Stats")
         st.dataframe(df, use_container_width=True, height=600)  # Set height to make it prominent
