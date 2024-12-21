@@ -82,14 +82,21 @@ if not df.empty:
 
     # Tab 1: Overview
     with tab1:
-        st.header("Overview")
+        # Larger Header for Overview
+        st.markdown("""
+            <h1 style="font-size:40px; font-weight:bold; color:#2c3e50; text-align:center;">
+            Overview
+            </h1>
+        """, unsafe_allow_html=True)
+
+        # Enhanced DataFrame Display
         st.dataframe(df, column_config={
             "Name": st.column_config.Column(pinned=True),
-        },)     
+        })
 
-        # Stats Summary
+        # Stats Summary with Wider Columns
         st.subheader("Interactive Stats Summary")
-        cols = st.columns(3)
+        cols = st.columns([1, 1, 1])  # Adjust column width ratios if needed
         for i, col in enumerate(numeric_cols):
             cols[i % 3].metric(
                 label=f"{col} (Avg)",
