@@ -110,11 +110,21 @@ if not df.empty:
         # Add Clickable Link
         st.markdown("[View Club League Matches](https://proclubshead.com/25/club-league-matches/gen5-353675/)")
 
-        # Embed the Website (Optional)
+        # Embed the Website (Enhanced Style)
         st.markdown(
             """
+            <style>
+                iframe {
+                    border: none;
+                    overflow: hidden;
+                    background-color: transparent;
+                    width: 100%;
+                    height: 800px;
+                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Adds shadow for better integration */
+                }
+            </style>
             <iframe src="https://proclubshead.com/25/club-league-matches/gen5-353675/" 
-            width="100%" height="600" frameborder="0"></iframe>
+            width="100%" height="800" frameborder="0"></iframe>
             """,
             unsafe_allow_html=True
         )
