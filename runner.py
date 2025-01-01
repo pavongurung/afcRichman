@@ -16,11 +16,15 @@ def fetch_data(sheet_url: str):
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
 
-# --- Updated Google Sheet CSV URL ---
+# --- Google Sheet CSV URL for Player Stats ---
 sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv"
 
-# Fetch data from the Google Sheet
+# --- Google Sheet CSV URL for Team Data ---
+team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
+
+# Fetch data from the Google Sheets
 df = fetch_data(sheet_url)
+df_teams = fetch_data(team_sheet_url)
 
 # --- Helper Function to Convert Data to CSV ---
 def convert_df_to_csv(data):
@@ -39,7 +43,7 @@ if not df.empty:
         df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
     # --- Tabs for Navigation ---
-    tab1, tab2, tab3 = st.tabs(["Overview", "Charts", "Club"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Charts", "Club", "Team"])
 
     # Tab 1: Overview
     with tab1:
@@ -137,10 +141,23 @@ if not df.empty:
             """,
             unsafe_allow_html=True
         )
+    
+    # Tab 4: Team Section
+    with tab4:
+        st.header("Team Information")
+        
+        if not df_teams.empty:
+            # Show Team Data sorted by Position
+            df_teams_sorted = df_teams.sort_values(by='Position')
+            st.subheader("Players by Position")
+            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600)
+        else:
+            st.warning("No team data available.")
 else:
     st.warning("No data available. Please check the Google Sheet URL or try again later.")
 
 # --- Manual Refresh Button ---
 if st.button("Refresh Data"):
     df = fetch_data(sheet_url)
+    df_teams = fetch_data(team_sheet_url)
     st.write("Data refreshed successfully!")
