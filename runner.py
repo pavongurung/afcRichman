@@ -37,7 +37,7 @@ if not df.empty:
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
         df[col].fillna(0, inplace=True)  # Replace NaN with 0
-    
+
     # --- Tabs for Navigation ---
     tab1, tab2, tab3 = st.tabs(["Overview", "Charts", "Club"])
 
@@ -57,14 +57,23 @@ if not df.empty:
         st.subheader("Player Stats")
         st.dataframe(df, use_container_width=True, height=600)  # Set height to make it prominent
 
-        # Stats Summary
-        st.subheader("Interactive Stats Summary")
-        cols = st.columns([1, 1, 1])  # Adjust column layout for the metrics
-        for i, col in enumerate(numeric_cols):
-            cols[i % 3].metric(
-                label=f"{col} (Avg)",
-                value=f"{df[col].mean():.2f}"
-            )
+        # Leaderboard Section
+        st.subheader("Top Performers")
+        stat_category = st.selectbox("Select Stat Category", numeric_cols)
+        if stat_category:
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            st.write(f"Top 3 Players for {stat_category}:")
+            st.table(leaderboard)
+
+        # Player Comparison Section
+        st.subheader("Compare Players")
+        players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
+        if len(players) == 2:
+            comparison = df[df["Player"].isin(players)].set_index("Player")
+            st.write(f"Comparison of {players[0]} vs {players[1]}:")
+            st.table(comparison[numeric_cols])
+        elif len(players) > 2:
+            st.warning("Please select only two players.")
 
     # Tab 2: Charts
     with tab2:
