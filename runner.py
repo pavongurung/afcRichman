@@ -19,145 +19,93 @@ def fetch_data(sheet_url: str):
 # --- Google Sheet CSV URL for Player Stats ---
 sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv"
 
-# --- Google Sheet CSV URL for Team Data ---
-team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
-
-# Fetch data from the Google Sheets
+# --- Fetch Data from Google Sheets ---
 df = fetch_data(sheet_url)
-df_teams = fetch_data(team_sheet_url)
-
-# --- Helper Function to Convert Data to CSV ---
-def convert_df_to_csv(data):
-    return data.to_csv(index=False).encode('utf-8')
 
 # --- App Layout ---
 st.title("aFc Richman Stats")
 st.caption("Explore and analyze player stats dynamically.")
 
-# Check if data is loaded successfully
+# --- Add Player Carousel ---
 if not df.empty:
-    # Clean Numeric Columns (Handle NaN Errors)
-    numeric_cols = df.select_dtypes(include=["number"]).columns
-    for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
-        df[col].fillna(0, inplace=True)  # Replace NaN with 0
-
-    # --- Tabs for Navigation ---
-    tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Charts", "Club", "Team"])
-
-    # Tab 1: Overview
-    with tab1:
-        # Larger Header for Overview
-        st.markdown("""
-            <h1 style="font-size:40px; font-weight:bold; color:#2c3e50; text-align:center;">
-            Overview
-            </h1>
-        """, unsafe_allow_html=True)
-
-        # Adjust numbering to start from 1
-        df.index = df.index + 1  # Adjust DataFrame index to start from 1
-
-        # Expanded DataFrame Display
-        st.subheader("Player Stats")
-        st.dataframe(df, use_container_width=True, height=600)  # Set height to make it prominent
-
-        # Leaderboard Section
-        st.subheader("Top Performers")
-        stat_category = st.selectbox("Select Stat Category", numeric_cols)
-        if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
-            st.write(f"Top 3 Players for {stat_category}:")
-            st.table(leaderboard.style.format({stat_category: "{:.0f}"}))  # Format numbers as integers
-
-        # Player Comparison Section
-        st.subheader("Compare Players")
-        players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
-        if len(players) == 2:
-            comparison = df[df["Player"].isin(players)].set_index("Player")
-            st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.table(comparison[numeric_cols].style.format("{:.0f}"))  # Format all numeric columns as integers
-        elif len(players) > 2:
-            st.warning("Please select only two players.")
-
-    # Tab 2: Charts
-    with tab2:
-        st.header("Charts")
-
-        # Dynamic Chart Type Selection
-        chart_type = st.radio("Select Chart Type", ["Bar Chart", "Line Chart", "Scatter Plot"])
-
-        # Generate Chart
-        st.subheader(f"{chart_type} of Player Stats")
-        selected_column = st.selectbox("Select a Column to Plot", numeric_cols)
-        if not df.empty:
-            chart_kwargs = {
-                "data_frame": df,
-                "x": 'Player' if 'Player' in df.columns else df.index,
-                "y": selected_column,
-                "title": f"{selected_column} by Player",
-                "labels": {"Player": "Player Name", selected_column: "Value"},
-                "height": 600,
-            }
-
-            if chart_type == "Bar Chart":
-                fig = px.bar(**chart_kwargs)
-            elif chart_type == "Line Chart":
-                fig = px.line(**chart_kwargs)
-            elif chart_type == "Scatter Plot":
-                fig = px.scatter(**chart_kwargs)
-
-            st.plotly_chart(fig, use_container_width=True)
-
-    # Tab 3: Club Section
-    with tab3:
-        st.header("Club Information")
-        
-        # Add Club Description
-        st.markdown(
-            """
-            Explore detailed stats and league matches for the club.
-            Use the link below to view the Club League Matches on Pro Clubs Head:
-            """
-        )
-
-        # Add Clickable Link
-        st.markdown("[View Club League Matches](https://proclubshead.com/25/club-league-matches/gen5-353675/)")
-
-        # Embed the Website (Enhanced Style)
-        st.markdown(
-            """
-            <style>
-                iframe {
-                    border: none;
-                    overflow: hidden;
-                    background-color: transparent;
-                    width: 100%;
-                    height: 800px;
-                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Adds shadow for better integration */
-                }
-            </style>
-            <iframe src="https://proclubshead.com/25/club-league-matches/gen5-353675/" 
-            width="100%" height="800" frameborder="0"></iframe>
-            """,
-            unsafe_allow_html=True
-        )
+    st.markdown("<h2 style='text-align: center;'>Players</h2>", unsafe_allow_html=True)
     
-    # Tab 4: Team Section
-    with tab4:
-        st.header("Team Information")
-        
-        if not df_teams.empty:
-            # Show Team Data sorted by Position
-            df_teams_sorted = df_teams.sort_values(by='Position')
-            st.subheader("Players by Position")
-            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600)
-        else:
-            st.warning("No team data available.")
-else:
-    st.warning("No data available. Please check the Google Sheet URL or try again later.")
+    # Check for required columns (e.g., Player, Position)
+    if "Player" in df.columns and "Position" in df.columns:
+        # Limit the number of players displayed to 3 (you can adjust this)
+        displayed_players = df.head(3)
 
-# --- Manual Refresh Button ---
-if st.button("Refresh Data"):
-    df = fetch_data(sheet_url)
-    df_teams = fetch_data(team_sheet_url)
-    st.write("Data refreshed successfully!")
+        carousel_col1, carousel_col2, carousel_col3 = st.columns(3)
+        columns = [carousel_col1, carousel_col2, carousel_col3]
+        
+        for i, player_row in enumerate(displayed_players.itertuples()):
+            with columns[i % 3]:
+                st.markdown(
+                    f"""
+                    <div style="text-align: center;">
+                        <h3>{player_row.Player}</h3>
+                        <p><strong>Position:</strong> {player_row.Position}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+    else:
+        st.warning("Player data is missing the required 'Player' or 'Position' columns.")
+else:
+    st.warning("No player data available.")
+
+# --- Add Games Section ---
+st.markdown("<h2 style='text-align: center;'>Games</h2>", unsafe_allow_html=True)
+
+# Example placeholder for games (you can fetch game data dynamically if available)
+games_results = [
+    {"competition": "Eredivisie", "date": "Sun. 22 December 2024", "result": "Sparta 0 - 2 aFc Richman"},
+    {"competition": "Dutch Cup", "date": "Thu. 19 December 2024", "result": "aFc Richman 2 - 0 Telstar"},
+    {"competition": "Eredivisie", "date": "Sun. 15 December 2024", "result": "aFc Richman 3 - 0 Almere City FC"},
+]
+
+for game in games_results:
+    st.markdown(f"""
+        <div style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;">
+            <strong>{game['competition']}</strong><br>
+            <span>{game['date']}</span><br>
+            <span style="font-size: 18px;">{game['result']}</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+# --- Tabs for Navigation ---
+tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Charts", "Club", "Team"])
+
+# Tab 1: Overview
+with tab1:
+    st.subheader("Player Stats")
+    if not df.empty:
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.warning("No data available.")
+
+# Tab 2: Charts
+with tab2:
+    st.header("Charts")
+    if not df.empty:
+        chart_type = st.radio("Select Chart Type", ["Bar Chart", "Line Chart", "Scatter Plot"])
+        selected_column = st.selectbox("Select a Column to Plot", df.select_dtypes(include=["number"]).columns)
+        if selected_column:
+            chart_kwargs = {"data_frame": df, "x": 'Player', "y": selected_column, "title": f"{selected_column} by Player"}
+            fig = px.bar(**chart_kwargs) if chart_type == "Bar Chart" else px.line(**chart_kwargs) if chart_type == "Line Chart" else px.scatter(**chart_kwargs)
+            st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("No data available.")
+
+# Tab 3: Club
+with tab3:
+    st.header("Club Information")
+    st.markdown("Detailed stats and league matches for the club.")
+
+# Tab 4: Team
+with tab4:
+    st.header("Team Information")
+    if not df.empty:
+        st.dataframe(df)
+    else:
+        st.warning("No team data available.")
