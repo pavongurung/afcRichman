@@ -144,7 +144,10 @@ if not df.empty:
         # Player Stats Table
         st.markdown("### Player Statistics")
         st.dataframe(
-            df, use_container_width=True, height=400, hide_index=True
+            df.style.background_gradient(subset=numeric_cols, cmap='YlOrRd'),
+            use_container_width=True,
+            height=400,
+            hide_index=True
         )
 
         # Top Performers
@@ -260,10 +263,6 @@ if not df.empty:
     with tab3:
         st.markdown("### 🏆 Club Information")
         
-        # Club Stats Summary
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("""
-                <div style='background-color
-            """)
+        # Embed the external club website using an iframe
+        st.markdown("""
+            <iframe src="https://pro
