@@ -1,6 +1,3 @@
-Here is your code with the invalid character (U+2019) replaced by the standard ASCII apostrophe ('):
-
-```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -273,6 +270,3 @@ if not df.empty:
             st.markdown("""
                 <div style='background-color
             """)
-```
-
-This cleaned-up version should now run without the syntax error. Let me know if you encounter any further issues!
