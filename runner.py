@@ -25,10 +25,10 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzt
 # --- Google Sheet CSV URL for Team Data ---
 team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
 
-# --- Google Sheet CSV URL for Friendlies ---
+# --- Google Sheet CSV URL for Friendlies Data ---
 friendlies_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1694477682"
 
-# --- Google Sheet CSV URL for Competitive Matches ---
+# --- Google Sheet CSV URL for Competitive Data ---
 competitive_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1257709827"
 
 # Fetch data from the Google Sheets
@@ -126,33 +126,53 @@ if not df.empty:
     # Tab 3: Club Section
     with tab3:
         st.header("Club's Overall Match Stats")
+        
+        # Calculate overall match stats (combining both friendlies and competitive matches)
+        total_played = len(df_friendlies) + len(df_competitive)
+        total_wins = df_friendlies['Win'].sum() + df_competitive['Win'].sum()
+        total_draws = df_friendlies['Draw'].sum() + df_competitive['Draw'].sum()
+        total_losses = df_friendlies['Lost'].sum() + df_competitive['Lost'].sum()
+        total_gf = df_friendlies['GF'].sum() + df_competitive['GF'].sum()
+        total_ga = df_friendlies['GA'].sum() + df_competitive['GA'].sum()
+        total_gd = total_gf - total_ga
+        win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
 
-        if not df_friendlies.empty and not df_competitive.empty:
-            # Combine both sheets into one for overall statistics
-            df_combined = pd.concat([df_friendlies, df_competitive])
+        # Format stats to remove .0 and improve presentation
+        total_played = int(total_played)  # Remove decimal from total played
+        total_wins = int(total_wins)  # Remove decimal from wins
+        total_draws = int(total_draws)  # Remove decimal from draws
+        total_losses = int(total_losses)  # Remove decimal from losses
+        total_gf = int(total_gf)  # Remove decimal from goals for
+        total_ga = int(total_ga)  # Remove decimal from goals against
+        total_gd = int(total_gd)  # Remove decimal from goal difference
+        win_percentage = round(win_percentage, 2)  # Round win percentage to 2 decimal places
 
-            # Calculate total games played, wins, draws, losses, goals for (GF), goals against (GA), and goal difference (GD)
-            total_played = df_combined["Played"].sum()
-            total_wins = df_combined["Win"].sum()
-            total_draws = df_combined["Draw"].sum()
-            total_losses = df_combined["Lost"].sum()
-            total_gf = df_combined["GF"].sum()
-            total_ga = df_combined["GA"].sum()
-            total_gd = df_combined["GD"].sum()
+        # Display stats with enhanced style
+        st.markdown("""
+            <style>
+                .stat {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    margin-bottom: 10px;
+                }
+                .highlight {
+                    color: #2ecc71; /* Green for positive */
+                }
+                .negative {
+                    color: #e74c3c; /* Red for negative */
+                }
+            </style>
+        """, unsafe_allow_html=True)
 
-            # Calculate win percentage
-            win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
-
-            st.write(f"**Total Games Played:** {total_played}")
-            st.write(f"**Total Wins:** {total_wins}")
-            st.write(f"**Total Draws:** {total_draws}")
-            st.write(f"**Total Losses:** {total_losses}")
-            st.write(f"**Goals For (GF):** {total_gf}")
-            st.write(f"**Goals Against (GA):** {total_ga}")
-            st.write(f"**Goal Difference (GD):** {total_gd}")
-            st.write(f"**Win Percentage:** {win_percentage:.2f}%")
-        else:
-            st.warning("No data available for friendlies or competitive matches.")
+        st.markdown(f'<p class="stat">Total Games Played: <span>{total_played}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Total Wins: <span class="highlight">{total_wins}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Total Draws: <span>{total_draws}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Total Losses: <span class="negative">{total_losses}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Goals For (GF): <span>{total_gf}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Goals Against (GA): <span>{total_ga}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Goal Difference (GD): <span class="{"highlight" if total_gd >= 0 else "negative"}">{total_gd}</span></p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="stat">Win Percentage: <span>{win_percentage}%</span></p>', unsafe_allow_html=True)
     
     # Tab 4: Team Section
     with tab4:
