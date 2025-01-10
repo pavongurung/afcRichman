@@ -1,14 +1,72 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime
+
+# --- Custom CSS Styling ---
+st.markdown("""
+    <style>
+    .main {
+        padding: 0rem 1rem;
+    }
+    .stApp {
+        max-width: 100%;
+    }
+    .stat-card {
+        background-color: #1E1E1E;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem;
+    }
+    .metric-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #FFFFFF;
+    }
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    div[data-testid="stSidebarNav"] li div a {
+        margin-left: 1rem;
+        padding: 1rem;
+        width: 300px;
+        border-radius: 0.5rem;
+        background-color: #262730;
+    }
+    /* Custom styling for dataframes */
+    .dataframe {
+        font-family: 'Arial', sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+    .dataframe th {
+        background-color: #2C3E50;
+        color: white;
+        padding: 12px;
+        text-align: left;
+    }
+    .dataframe td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+    }
+    .dataframe tr:hover {
+        background-color: #1E1E1E;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- Page Configurations ---
 st.set_page_config(
     page_title="aFc Richman Stats",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # --- Function to Fetch Data from Google Sheet ---
+@st.cache_data(ttl=300)  # Cache data for 5 minutes
 def fetch_data(sheet_url: str):
     try:
         return pd.read_csv(sheet_url)
@@ -16,152 +74,249 @@ def fetch_data(sheet_url: str):
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
 
-# --- Google Sheet CSV URL for Player Stats ---
+# --- URLs and Data Fetching ---
 sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv"
-
-# --- Google Sheet CSV URL for Team Data ---
 team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
 
-# Fetch data from the Google Sheets
 df = fetch_data(sheet_url)
 df_teams = fetch_data(team_sheet_url)
 
-# --- Helper Function to Convert Data to CSV ---
-def convert_df_to_csv(data):
-    return data.to_csv(index=False).encode('utf-8')
+# --- App Header ---
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.title("⚽ aFc Richman Stats")
+    st.caption("Last updated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-# --- App Layout ---
-st.title("aFc Richman Stats")
-st.caption("Explore and analyze player stats dynamically.")
-
-# Add the description with emphasis
 st.markdown("""
-    <h2 style="font-size:24px; font-weight:bold; color:#2c3e50; text-align:center;">
-        Appearances, goals, and assists are tracked only for 11v11 friendlies and competitive matches.
-    </h2>
+    <div style='background-color: #2C3E50; padding: 1rem; border-radius: 0.5rem; text-align: center; margin: 1rem 0;'>
+        <h3 style='color: white; margin: 0;'>
+            Appearances, goals, and assists are tracked only for 11v11 friendlies and competitive matches
+        </h3>
+    </div>
 """, unsafe_allow_html=True)
 
-# Check if data is loaded successfully
 if not df.empty:
-    # Clean Numeric Columns (Handle NaN Errors)
+    # Clean Numeric Columns
     numeric_cols = df.select_dtypes(include=["number"]).columns
     for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
-        df[col].fillna(0, inplace=True)  # Replace NaN with 0
+        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
-    # --- Tabs for Navigation ---
-    tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Charts", "Club", "Team"])
-
-    # Tab 1: Overview
-    with tab1:
-        # Larger Header for Overview
+    # --- Key Metrics Dashboard ---
+    st.markdown("### 📊 Key Metrics")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
         st.markdown("""
-            <h1 style="font-size:40px; font-weight:bold; color:#2c3e50; text-align:center;">
-            Overview
-            </h1>
-        """, unsafe_allow_html=True)
+            <div class='stat-card'>
+                <p class='metric-title'>Total Goals</p>
+                <p class='metric-value'>{}</p>
+            </div>
+        """.format(int(df['Goals'].sum())), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+            <div class='stat-card'>
+                <p class='metric-title'>Total Assists</p>
+                <p class='metric-value'>{}</p>
+            </div>
+        """.format(int(df['Assists'].sum())), unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+            <div class='stat-card'>
+                <p class='metric-title'>Clean Sheets</p>
+                <p class='metric-value'>{}</p>
+            </div>
+        """.format(int(df['Clean Sheets'].sum())), unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+            <div class='stat-card'>
+                <p class='metric-title'>Total Players</p>
+                <p class='metric-value'>{}</p>
+            </div>
+        """.format(len(df)), unsafe_allow_html=True)
 
-        # Display DataFrame without index
-        st.subheader("Player Stats")
-        st.dataframe(df.reset_index(drop=True), use_container_width=True, height=600, hide_index=True)
+    # --- Tabs ---
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Overview", "📊 Charts", "🏆 Club", "👥 Team"])
 
-        # Leaderboard Section
-        st.subheader("Top Performers")
+    with tab1:
+        # Player Stats Table
+        st.markdown("### Player Statistics")
+        st.dataframe(
+            df.style.background_gradient(subset=numeric_cols, cmap='YlOrRd'),
+            use_container_width=True,
+            height=400,
+            hide_index=True
+        )
+
+        # Top Performers
+        st.markdown("### 🏅 Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
-            st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard, hide_index=True)
-
-        # Player Comparison Section
-        st.subheader("Compare Players")
-        players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
-        if len(players) == 2:
-            comparison = df[df["Player"].isin(players)].set_index("Player")
-            st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.dataframe(comparison[numeric_cols], hide_index=False)
-        elif len(players) > 2:
-            st.warning("Please select only two players.")
-
-    # Tab 2: Charts
-    with tab2:
-        st.header("Charts")
-
-        # Dynamic Chart Type Selection
-        chart_type = st.radio("Select Chart Type", ["Bar Chart", "Line Chart", "Scatter Plot"])
-
-        # Generate Chart
-        st.subheader(f"{chart_type} of Player Stats")
-        selected_column = st.selectbox("Select a Column to Plot", numeric_cols)
-        if not df.empty:
-            chart_kwargs = {
-                "data_frame": df,
-                "x": 'Player' if 'Player' in df.columns else df.index,
-                "y": selected_column,
-                "title": f"{selected_column} by Player",
-                "labels": {"Player": "Player Name", selected_column: "Value"},
-                "height": 600,
-            }
-
-            if chart_type == "Bar Chart":
-                fig = px.bar(**chart_kwargs)
-            elif chart_type == "Line Chart":
-                fig = px.line(**chart_kwargs)
-            elif chart_type == "Scatter Plot":
-                fig = px.scatter(**chart_kwargs)
-
+            
+            # Create a more visually appealing leaderboard
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=leaderboard["Player"],
+                y=leaderboard[stat_category],
+                text=leaderboard[stat_category],
+                textposition='auto',
+                marker_color=['gold', 'silver', '#CD7F32']
+            ))
+            fig.update_layout(
+                title=f"Top 3 Players - {stat_category}",
+                height=400,
+                showlegend=False,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
             st.plotly_chart(fig, use_container_width=True)
 
-    # Tab 3: Club Section
-    with tab3:
-        st.header("Club Information")
+        # Player Comparison
+        st.markdown("### 🔄 Player Comparison")
+        col1, col2 = st.columns(2)
+        with col1:
+            player1 = st.selectbox("Select First Player", df["Player"].unique(), key="player1")
+        with col2:
+            player2 = st.selectbox("Select Second Player", df["Player"].unique(), key="player2")
         
-        # Add Club Description
-        st.markdown(
-            """
-            Explore detailed stats and league matches for the club.
-            Use the link below to view the Club League Matches on Pro Clubs Head:
-            """
+        if player1 and player2 and player1 != player2:
+            comparison = df[df["Player"].isin([player1, player2])].set_index("Player")[numeric_cols]
+            
+            # Create radar chart for comparison
+            categories = numeric_cols
+            fig = go.Figure()
+            
+            fig.add_trace(go.Scatterpolar(
+                r=comparison.loc[player1],
+                theta=categories,
+                fill='toself',
+                name=player1
+            ))
+            fig.add_trace(go.Scatterpolar(
+                r=comparison.loc[player2],
+                theta=categories,
+                fill='toself',
+                name=player2
+            ))
+            
+            fig.update_layout(
+                polar=dict(
+                    radialaxis=dict(
+                        visible=True,
+                        range=[0, max(comparison.max().max(), 1)]
+                    )),
+                showlegend=True,
+                title="Player Comparison Radar Chart",
+                height=500
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+    with tab2:
+        st.markdown("### 📈 Performance Charts")
+        
+        # Enhanced Chart Options
+        chart_type = st.radio(
+            "Select Visualization Type",
+            ["Bar Chart", "Line Chart", "Scatter Plot", "Heat Map"],
+            horizontal=True
         )
-
-        # Add Clickable Link
-        st.markdown("[View Club League Matches](https://proclubshead.com/25/club-league-matches/gen5-353675/)")
-
-        # Embed the Website (Enhanced Style)
-        st.markdown(
-            """
-            <style>
-                iframe {
-                    border: none;
-                    overflow: hidden;
-                    background-color: transparent;
-                    width: 100%;
-                    height: 800px;
-                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Adds shadow for better integration */
+        
+        selected_column = st.selectbox("Select Metric to Visualize", numeric_cols)
+        
+        if not df.empty:
+            if chart_type == "Heat Map":
+                fig = px.imshow(
+                    df[numeric_cols].corr(),
+                    labels=dict(color="Correlation"),
+                    title="Metrics Correlation Heatmap"
+                )
+            else:
+                chart_kwargs = {
+                    "data_frame": df,
+                    "x": 'Player',
+                    "y": selected_column,
+                    "title": f"{selected_column} by Player",
+                    "labels": {"Player": "Player Name", selected_column: "Value"},
+                    "height": 500,
+                    "color_discrete_sequence": px.colors.qualitative.Set3
                 }
-            </style>
-            <iframe src="https://proclubshead.com/25/club-league-matches/gen5-353675/" 
-            width="100%" height="800" frameborder="0"></iframe>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    # Tab 4: Team Section
+                
+                if chart_type == "Bar Chart":
+                    fig = px.bar(**chart_kwargs)
+                elif chart_type == "Line Chart":
+                    fig = px.line(**chart_kwargs)
+                else:
+                    fig = px.scatter(**chart_kwargs)
+                
+                fig.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    xaxis_title="Player",
+                    yaxis_title=selected_column
+                )
+            
+            st.plotly_chart(fig, use_container_width=True)
+
+    with tab3:
+        st.markdown("### 🏆 Club Information")
+        
+        # Club Stats Summary
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+                <div style='background-color: #1E1E1E; padding: 1rem; border-radius: 0.5rem;'>
+                    <h4 style='color: #4CAF50;'>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://proclubshead.com/25/club-league-matches/gen5-353675/">Club League Matches</a></li>
+                        <li><a href="https://proclubshead.com/25/club-league-matches/gen5-353675/">Season Statistics</a></li>
+                    </ul>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("""
+                <div style='background-color: #1E1E1E; padding: 1rem; border-radius: 0.5rem;'>
+                    <h4 style='color: #4CAF50;'>Club Achievements</h4>
+                    <ul>
+                        <li>Total Matches Played</li>
+                        <li>Win Rate</li>
+                        <li>Current Division</li>
+                    </ul>
+                </div>
+            """, unsafe_allow_html=True)
+
     with tab4:
-        st.header("Team Information")
+        st.markdown("### 👥 Team Information")
         
         if not df_teams.empty:
-            # Show Team Data sorted by Position without index
+            # Enhanced team display with position grouping
             df_teams_sorted = df_teams.sort_values(by='Position')
-            st.subheader("Players by Position")
-            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600, hide_index=True)
+            
+            # Group players by position
+            positions = df_teams_sorted['Position'].unique()
+            
+            for pos in positions:
+                st.markdown(f"#### {pos}")
+                players_in_pos = df_teams_sorted[df_teams_sorted['Position'] == pos]
+                st.dataframe(
+                    players_in_pos[['Player', 'Position']],
+                    use_container_width=True,
+                    hide_index=True
+                )
         else:
             st.warning("No team data available.")
-else:
-    st.warning("No data available. Please check the Google Sheet URL or try again later.")
 
-# --- Manual Refresh Button ---
-if st.button("Refresh Data"):
-    df = fetch_data(sheet_url)
-    df_teams = fetch_data(team_sheet_url)
-    st.write("Data refreshed successfully!")
+else:
+    st.error("Unable to load data. Please check the data source and try again.")
+
+# --- Footer ---
+st.markdown("""
+    <div style='text-align: center; margin-top: 2rem; padding: 1rem; background-color: #1E1E1E; border-radius: 0.5rem;'>
+        <p style='color: #666; margin: 0;'>Last refresh: {}</p>
+        <button style='margin-top: 0.5rem;' onClick='window.location.reload();'>Refresh Data</button>
+    </div>
+""".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), unsafe_allow_html=True)
