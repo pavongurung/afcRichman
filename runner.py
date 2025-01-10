@@ -144,10 +144,7 @@ if not df.empty:
         # Player Stats Table
         st.markdown("### Player Statistics")
         st.dataframe(
-            df.style.background_gradient(subset=numeric_cols, cmap='YlOrRd'),
-            use_container_width=True,
-            height=400,
-            hide_index=True
+            df, use_container_width=True, height=400, hide_index=True
         )
 
         # Top Performers
