@@ -1,8 +1,20 @@
+The error `StreamlitSetPageConfigMustBeFirstCommandError` occurs because `st.set_page_config()` must be called before any other Streamlit commands are executed. This is a rule in Streamlit to ensure proper configuration of the app layout and behavior.
+
+To fix this error, you need to move `st.set_page_config()` to the very top of the script, before any other Streamlit function calls. Here’s the corrected code:
+
+```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+
+# --- Page Configurations ---
+st.set_page_config(
+    page_title="aFc Richman Stats",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # --- Custom CSS Styling ---
 st.markdown("""
@@ -57,13 +69,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-# --- Page Configurations ---
-st.set_page_config(
-    page_title="aFc Richman Stats",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # --- Function to Fetch Data from Google Sheet ---
 @st.cache_data(ttl=300)  # Cache data for 5 minutes
@@ -268,55 +273,4 @@ if not df.empty:
         
         with col1:
             st.markdown("""
-                <div style='background-color: #1E1E1E; padding: 1rem; border-radius: 0.5rem;'>
-                    <h4 style='color: #4CAF50;'>Quick Links</h4>
-                    <ul>
-                        <li><a href="https://proclubshead.com/25/club-league-matches/gen5-353675/">Club League Matches</a></li>
-                        <li><a href="https://proclubshead.com/25/club-league-matches/gen5-353675/">Season Statistics</a></li>
-                    </ul>
-                </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown("""
-                <div style='background-color: #1E1E1E; padding: 1rem; border-radius: 0.5rem;'>
-                    <h4 style='color: #4CAF50;'>Club Achievements</h4>
-                    <ul>
-                        <li>Total Matches Played</li>
-                        <li>Win Rate</li>
-                        <li>Current Division</li>
-                    </ul>
-                </div>
-            """, unsafe_allow_html=True)
-
-    with tab4:
-        st.markdown("### 👥 Team Information")
-        
-        if not df_teams.empty:
-            # Enhanced team display with position grouping
-            df_teams_sorted = df_teams.sort_values(by='Position')
-            
-            # Group players by position
-            positions = df_teams_sorted['Position'].unique()
-            
-            for pos in positions:
-                st.markdown(f"#### {pos}")
-                players_in_pos = df_teams_sorted[df_teams_sorted['Position'] == pos]
-                st.dataframe(
-                    players_in_pos[['Player', 'Position']],
-                    use_container_width=True,
-                    hide_index=True
-                )
-        else:
-            st.warning("No team data available.")
-
-else:
-    st.error("Unable to load data. Please check the data source and try again.")
-
-# --- Footer ---
-st.markdown("""
-    <div style='text-align: center; margin-top: 2rem; padding: 1rem; background-color: #1E1E1E; border-radius: 0.5rem;'>
-        <p style='color: #666; margin: 0;'>Last refresh: {}</p>
-        <button style='margin-top: 0.5rem;' onClick='window.location.reload();'>Refresh Data</button>
-    </div>
-""".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), unsafe_allow_html=True)
+                <div style='background-color
