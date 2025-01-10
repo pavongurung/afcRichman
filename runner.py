@@ -71,7 +71,7 @@ if not df.empty:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.table(leaderboard.style.format({stat_category: "{:.0f}"}).hide_index())
+            st.dataframe(leaderboard, hide_index=True)
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -79,7 +79,7 @@ if not df.empty:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.table(comparison[numeric_cols].style.format("{:.0f}"))
+            st.dataframe(comparison[numeric_cols], hide_index=False)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
