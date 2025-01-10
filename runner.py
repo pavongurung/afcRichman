@@ -34,6 +34,13 @@ def convert_df_to_csv(data):
 st.title("aFc Richman Stats")
 st.caption("Explore and analyze player stats dynamically.")
 
+# Add the description with emphasis
+st.markdown("""
+    <h2 style="font-size:24px; font-weight:bold; color:#2c3e50; text-align:center;">
+        Appearances, goals, and assists are tracked only for 11v11 friendlies and competitive matches.
+    </h2>
+""", unsafe_allow_html=True)
+
 # Check if data is loaded successfully
 if not df.empty:
     # Clean Numeric Columns (Handle NaN Errors)
