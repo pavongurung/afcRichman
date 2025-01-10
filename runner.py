@@ -130,8 +130,14 @@ if not df.empty:
         try:
             # Ensure that both dataframes are not empty
             if not df_friendlies.empty and not df_competitive.empty:
-                # Combine data from both friendlies and competitive matches
-                total_played = len(df_friendlies) + len(df_competitive)
+                # Count the games played in both datasets based on "Played" column (assuming it's present)
+                total_played_friendlies = df_friendlies['Played'].sum()
+                total_played_competitive = df_competitive['Played'].sum()
+                
+                # Sum total games played
+                total_played = total_played_friendlies + total_played_competitive
+
+                # Sum other stats from both datasets
                 total_wins = df_friendlies['Win'].sum() + df_competitive['Win'].sum()
                 total_draws = df_friendlies['Draw'].sum() + df_competitive['Draw'].sum()
                 total_losses = df_friendlies['Lost'].sum() + df_competitive['Lost'].sum()
@@ -140,14 +146,14 @@ if not df.empty:
             else:
                 # Handle case where one of the datasets is empty
                 if df_friendlies.empty:
-                    total_played = len(df_competitive)
+                    total_played = df_competitive['Played'].sum()
                     total_wins = df_competitive['Win'].sum()
                     total_draws = df_competitive['Draw'].sum()
                     total_losses = df_competitive['Lost'].sum()
                     total_gf = df_competitive['GF'].sum()
                     total_ga = df_competitive['GA'].sum()
                 else:
-                    total_played = len(df_friendlies)
+                    total_played = df_friendlies['Played'].sum()
                     total_wins = df_friendlies['Win'].sum()
                     total_draws = df_friendlies['Draw'].sum()
                     total_losses = df_friendlies['Lost'].sum()
@@ -158,7 +164,7 @@ if not df.empty:
             total_gd = total_gf - total_ga
             win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
 
-            # Ensure values are integers for display
+            # Round to whole numbers for display
             total_played = int(total_played)
             total_wins = int(total_wins)
             total_draws = int(total_draws)
@@ -166,15 +172,15 @@ if not df.empty:
             total_gf = int(total_gf)
             total_ga = int(total_ga)
             total_gd = int(total_gd)
-            win_percentage = round(win_percentage, 2)
+            win_percentage = round(win_percentage)  # Remove decimal points
 
             # Display stats with enhanced style
             st.markdown("""
                 <style>
                     .stat {
-                        font-size: 18px;
+                        font-size: 20px;
                         font-weight: bold;
-                        color: #2c3e50;
+                        color: #34495e; /* Lighter color for readability */
                         margin-bottom: 10px;
                     }
                     .highlight {
@@ -182,6 +188,10 @@ if not df.empty:
                     }
                     .negative {
                         color: #e74c3c; /* Red for negative */
+                    }
+                    .stat span {
+                        font-size: 22px;
+                        font-weight: bold;
                     }
                 </style>
             """, unsafe_allow_html=True)
