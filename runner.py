@@ -41,6 +41,46 @@ df_competitive = fetch_data(competitive_sheet_url)
 def convert_df_to_csv(data):
     return data.to_csv(index=False).encode('utf-8')
 
+# --- Custom CSS for Red, Black, and Koulen Font ---
+st.markdown("""
+    <style>
+        body {
+            font-family: 'Koulen', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+        }
+        h1, h2, h3, .stat {
+            color: #e74c3c;
+        }
+        .highlight {
+            color: #2ecc71;
+        }
+        .negative {
+            color: #e74c3c;
+        }
+        .stButton button {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 16px;
+            border: none;
+        }
+        .stButton button:hover {
+            background-color: #c0392b;
+        }
+        .stat {
+            font-size: 20px;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+        .stat span {
+            font-size: 22px;
+            font-weight: bold;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
+""", unsafe_allow_html=True)
+
 # --- App Layout ---
 st.title("aFc Richman Stats")
 st.caption("Explore and analyze player stats dynamically.")
@@ -67,7 +107,7 @@ if not df.empty:
     with tab1:
         # Larger Header for Overview
         st.markdown("""
-            <h1 style="font-size:40px; font-weight:bold; color:#2c3e50; text-align:center;">
+            <h1 style="font-size:40px; font-weight:bold; color:#e74c3c; text-align:center;">
             Overview
             </h1>
         """, unsafe_allow_html=True)
@@ -175,27 +215,6 @@ if not df.empty:
             win_percentage = round(win_percentage)  # Remove decimal points
 
             # Display stats with enhanced style
-            st.markdown("""
-                <style>
-                    .stat {
-                        font-size: 20px;
-                        font-weight: bold;
-                        color: #34495e; /* Lighter color for readability */
-                        margin-bottom: 10px;
-                    }
-                    .highlight {
-                        color: #2ecc71; /* Green for positive */
-                    }
-                    .negative {
-                        color: #e74c3c; /* Red for negative */
-                    }
-                    .stat span {
-                        font-size: 22px;
-                        font-weight: bold;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
-
             st.markdown(f'<p class="stat">Total Games Played: <span>{total_played}</span></p>', unsafe_allow_html=True)
             st.markdown(f'<p class="stat">Total Wins: <span class="highlight">{total_wins}</span></p>', unsafe_allow_html=True)
             st.markdown(f'<p class="stat">Total Draws: <span>{total_draws}</span></p>', unsafe_allow_html=True)
