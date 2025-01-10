@@ -125,7 +125,7 @@ if not df.empty:
 
     # Tab 3: Club Section
     with tab3:
-        st.header("Club's Overall Match Stats")
+        st.header("Overall Match Stats for 11v11 Friendlies & Competitive Matches")
         
         try:
             # Ensure that both dataframes are not empty
