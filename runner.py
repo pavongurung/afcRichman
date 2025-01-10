@@ -25,9 +25,17 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzt
 # --- Google Sheet CSV URL for Team Data ---
 team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
 
+# --- Google Sheet CSV URL for Friendlies ---
+friendlies_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1694477682"
+
+# --- Google Sheet CSV URL for Competitive Matches ---
+competitive_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1257709827"
+
 # Fetch data from the Google Sheets
 df = fetch_data(sheet_url)
 df_teams = fetch_data(team_sheet_url)
+df_friendlies = fetch_data(friendlies_sheet_url)
+df_competitive = fetch_data(competitive_sheet_url)
 
 # --- Helper Function to Convert Data to CSV ---
 def convert_df_to_csv(data):
@@ -117,37 +125,34 @@ if not df.empty:
 
     # Tab 3: Club Section
     with tab3:
-        st.header("Club Information")
-        
-        # Add Club Description
-        st.markdown(
-            """
-            Explore detailed stats and league matches for the club.
-            Use the link below to view the Club League Matches on Pro Clubs Head:
-            """
-        )
+        st.header("Club's Overall Match Stats")
 
-        # Add Clickable Link
-        st.markdown("[View Club League Matches](https://proclubshead.com/25/club-league-matches/gen5-353675/)")
+        if not df_friendlies.empty and not df_competitive.empty:
+            # Combine both sheets into one for overall statistics
+            df_combined = pd.concat([df_friendlies, df_competitive])
 
-        # Embed the Website (Enhanced Style)
-        st.markdown(
-            """
-            <style>
-                iframe {
-                    border: none;
-                    overflow: hidden;
-                    background-color: transparent;
-                    width: 100%;
-                    height: 800px;
-                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Adds shadow for better integration */
-                }
-            </style>
-            <iframe src="https://proclubshead.com/25/club-league-matches/gen5-353675/" 
-            width="100%" height="800" frameborder="0"></iframe>
-            """,
-            unsafe_allow_html=True
-        )
+            # Calculate total games played, wins, draws, losses, goals for (GF), goals against (GA), and goal difference (GD)
+            total_played = df_combined["Played"].sum()
+            total_wins = df_combined["Win"].sum()
+            total_draws = df_combined["Draw"].sum()
+            total_losses = df_combined["Lost"].sum()
+            total_gf = df_combined["GF"].sum()
+            total_ga = df_combined["GA"].sum()
+            total_gd = df_combined["GD"].sum()
+
+            # Calculate win percentage
+            win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
+
+            st.write(f"**Total Games Played:** {total_played}")
+            st.write(f"**Total Wins:** {total_wins}")
+            st.write(f"**Total Draws:** {total_draws}")
+            st.write(f"**Total Losses:** {total_losses}")
+            st.write(f"**Goals For (GF):** {total_gf}")
+            st.write(f"**Goals Against (GA):** {total_ga}")
+            st.write(f"**Goal Difference (GD):** {total_gd}")
+            st.write(f"**Win Percentage:** {win_percentage:.2f}%")
+        else:
+            st.warning("No data available for friendlies or competitive matches.")
     
     # Tab 4: Team Section
     with tab4:
@@ -168,4 +173,6 @@ if st.button("Refresh Data"):
     with st.spinner('Refreshing data...'):
         df = fetch_data(sheet_url)
         df_teams = fetch_data(team_sheet_url)
+        df_friendlies = fetch_data(friendlies_sheet_url)
+        df_competitive = fetch_data(competitive_sheet_url)
         st.success("Data refreshed successfully!")
