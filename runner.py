@@ -11,7 +11,10 @@ st.set_page_config(
 # --- Function to Fetch Data from Google Sheet ---
 def fetch_data(sheet_url: str):
     try:
-        return pd.read_csv(sheet_url)
+        df = pd.read_csv(sheet_url)
+        if df.empty:
+            st.warning("The fetched data is empty.")
+        return df
     except Exception as e:
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
@@ -162,6 +165,7 @@ else:
 
 # --- Manual Refresh Button ---
 if st.button("Refresh Data"):
-    df = fetch_data(sheet_url)
-    df_teams = fetch_data(team_sheet_url)
-    st.write("Data refreshed successfully!")
+    with st.spinner('Refreshing data...'):
+        df = fetch_data(sheet_url)
+        df_teams = fetch_data(team_sheet_url)
+        st.success("Data refreshed successfully!")
