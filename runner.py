@@ -61,12 +61,9 @@ if not df.empty:
             </h1>
         """, unsafe_allow_html=True)
 
-        # Adjust numbering to start from 1
-        df.index = df.index + 1  # Adjust DataFrame index to start from 1
-
-        # Expanded DataFrame Display
+        # Display DataFrame without index
         st.subheader("Player Stats")
-        st.dataframe(df, use_container_width=True, height=600)  # Set height to make it prominent
+        st.dataframe(df.reset_index(drop=True), use_container_width=True, height=600, hide_index=True)
 
         # Leaderboard Section
         st.subheader("Top Performers")
@@ -74,7 +71,7 @@ if not df.empty:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.table(leaderboard.style.format({stat_category: "{:.0f}"}))  # Format numbers as integers
+            st.table(leaderboard.style.format({stat_category: "{:.0f}"}).hide_index())
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -82,7 +79,7 @@ if not df.empty:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.table(comparison[numeric_cols].style.format("{:.0f}"))  # Format all numeric columns as integers
+            st.table(comparison[numeric_cols].style.format("{:.0f}"))
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
@@ -154,10 +151,10 @@ if not df.empty:
         st.header("Team Information")
         
         if not df_teams.empty:
-            # Show Team Data sorted by Position
+            # Show Team Data sorted by Position without index
             df_teams_sorted = df_teams.sort_values(by='Position')
             st.subheader("Players by Position")
-            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600)
+            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600, hide_index=True)
         else:
             st.warning("No team data available.")
 else:
