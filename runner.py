@@ -127,56 +127,96 @@ if not df.empty:
     with tab3:
         st.header("Club's Overall Match Stats")
         
-        # Calculate overall match stats (combining both friendlies and competitive matches)
-        if not df_friendlies.empty and not df_competitive.empty:
-            # Combining data from both friendlies and competitive matches
-            total_played = len(df_friendlies) + len(df_competitive)
-            total_wins = df_friendlies['Win'].sum() + df_competitive['Win'].sum()
-            total_draws = df_friendlies['Draw'].sum() + df_competitive['Draw'].sum()
-            total_losses = df_friendlies['Lost'].sum() + df_competitive['Lost'].sum()
-            total_gf = df_friendlies['GF'].sum() + df_competitive['GF'].sum()
-            total_ga = df_friendlies['GA'].sum() + df_competitive['GA'].sum()
+        try:
+            # Ensure that both dataframes are not empty
+            if not df_friendlies.empty and not df_competitive.empty:
+                # Combine data from both friendlies and competitive matches
+                total_played = len(df_friendlies) + len(df_competitive)
+                total_wins = df_friendlies['Win'].sum() + df_competitive['Win'].sum()
+                total_draws = df_friendlies['Draw'].sum() + df_competitive['Draw'].sum()
+                total_losses = df_friendlies['Lost'].sum() + df_competitive['Lost'].sum()
+                total_gf = df_friendlies['GF'].sum() + df_competitive['GF'].sum()
+                total_ga = df_friendlies['GA'].sum() + df_competitive['GA'].sum()
+            else:
+                # Handle case where one of the datasets is empty
+                if df_friendlies.empty:
+                    total_played = len(df_competitive)
+                    total_wins = df_competitive['Win'].sum()
+                    total_draws = df_competitive['Draw'].sum()
+                    total_losses = df_competitive['Lost'].sum()
+                    total_gf = df_competitive['GF'].sum()
+                    total_ga = df_competitive['GA'].sum()
+                else:
+                    total_played = len(df_friendlies)
+                    total_wins = df_friendlies['Win'].sum()
+                    total_draws = df_friendlies['Draw'].sum()
+                    total_losses = df_friendlies['Lost'].sum()
+                    total_gf = df_friendlies['GF'].sum()
+                    total_ga = df_friendlies['GA'].sum()
+
+            # Calculate goal difference and win percentage
+            total_gd = total_gf - total_ga
+            win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
+
+            # Ensure values are integers for display
+            total_played = int(total_played)
+            total_wins = int(total_wins)
+            total_draws = int(total_draws)
+            total_losses = int(total_losses)
+            total_gf = int(total_gf)
+            total_ga = int(total_ga)
+            total_gd = int(total_gd)
+            win_percentage = round(win_percentage, 2)
+
+            # Display stats with enhanced style
+            st.markdown("""
+                <style>
+                    .stat {
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: #2c3e50;
+                        margin-bottom: 10px;
+                    }
+                    .highlight {
+                        color: #2ecc71; /* Green for positive */
+                    }
+                    .negative {
+                        color: #e74c3c; /* Red for negative */
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+
+            st.markdown(f'<p class="stat">Total Games Played: <span>{total_played}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Total Wins: <span class="highlight">{total_wins}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Total Draws: <span>{total_draws}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Total Losses: <span class="negative">{total_losses}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Goals For (GF): <span>{total_gf}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Goals Against (GA): <span>{total_ga}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Goal Difference (GD): <span class="{"highlight" if total_gd >= 0 else "negative"}">{total_gd}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Win Percentage: <span>{win_percentage}%</span></p>', unsafe_allow_html=True)
+
+        except Exception as e:
+            st.error(f"An error occurred while calculating the stats: {e}")
+
+    # Tab 4: Team Section
+    with tab4:
+        st.header("Team Information")
+        
+        if not df_teams.empty:
+            # Show Team Data sorted by Position without index
+            df_teams_sorted = df_teams.sort_values(by='Position')
+            st.subheader("Players by Position")
+            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600, hide_index=True)
         else:
-            # If friendlies data is empty, use only competitive data
-            total_played = len(df_competitive)
-            total_wins = df_competitive['Win'].sum()
-            total_draws = df_competitive['Draw'].sum()
-            total_losses = df_competitive['Lost'].sum()
-            total_gf = df_competitive['GF'].sum()
-            total_ga = df_competitive['GA'].sum()
+            st.warning("No team data available.")
+else:
+    st.warning("No data available. Please check the Google Sheet URL or try again later.")
 
-        # Calculate goal difference and win percentage
-        total_gd = total_gf - total_ga
-        win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
-
-        # Format stats to remove .0 and improve presentation
-        total_played = int(total_played)
-        total_wins = int(total_wins)
-        total_draws = int(total_draws)
-        total_losses = int(total_losses)
-        total_gf = int(total_gf)
-        total_ga = int(total_ga)
-        total_gd = int(total_gd)
-        win_percentage = round(win_percentage, 2)
-
-        # Display stats with enhanced style
-        st.markdown("""
-            <style>
-                .stat {
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: #2c3e50;
-                    margin-bottom: 10px;
-                }
-                .highlight {
-                    color: #2ecc71; /* Green for positive */
-                }
-                .negative {
-                    color: #e74c3c; /* Red for negative */
-                }
-            </style>
-        """, unsafe_allow_html=True)
-
-        st.markdown(f'<p class="stat">Total Games Played: <span>{total_played}</span></p>', unsafe_allow_html=True)
-        st.markdown(f'<p class="stat">Total Wins: <span class="highlight">{total_wins}</span></p>', unsafe_allow_html=True)
-        st.ma
+# --- Manual Refresh Button ---
+if st.button("Refresh Data"):
+    with st.spinner('Refreshing data...'):
+        df = fetch_data(sheet_url)
+        df_teams = fetch_data(team_sheet_url)
+        df_friendlies = fetch_data(friendlies_sheet_url)
+        df_competitive = fetch_data(competitive_sheet_url)
+        st.success("Data refreshed successfully!")
