@@ -1,6 +1,4 @@
-The error `StreamlitSetPageConfigMustBeFirstCommandError` occurs because `st.set_page_config()` must be called before any other Streamlit commands are executed. This is a rule in Streamlit to ensure proper configuration of the app layout and behavior.
-
-To fix this error, you need to move `st.set_page_config()` to the very top of the script, before any other Streamlit function calls. Here’s the corrected code:
+Here is your code with the invalid character (U+2019) replaced by the standard ASCII apostrophe ('):
 
 ```python
 import streamlit as st
@@ -274,3 +272,7 @@ if not df.empty:
         with col1:
             st.markdown("""
                 <div style='background-color
+            """)
+```
+
+This cleaned-up version should now run without the syntax error. Let me know if you encounter any further issues!
