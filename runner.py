@@ -52,6 +52,21 @@ st.markdown("""
         h1, h2, h3, .stat {
             color: #e74c3c;
         }
+        h1 {
+            font-size: 40px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        h2 {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        h3 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
         .highlight {
             color: #2ecc71;
         }
@@ -76,6 +91,10 @@ st.markdown("""
         .stat span {
             font-size: 22px;
             font-weight: bold;
+        }
+        .stMarkdown p {
+            color: #ffffff;
+            font-size: 18px;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
