@@ -1,7 +1,6 @@
-import streamlit as st
+SOT#sdkE*B4Uuz!1F8Kkimport streamlit as st
 import pandas as pd
 import plotly.express as px
-import requests
 
 # --- Page Configurations ---
 st.set_page_config(
@@ -20,38 +19,27 @@ def fetch_data(sheet_url: str):
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
 
-# --- Function to Fetch Data from EA API ---
-def fetch_ea_data(api_url):
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching data from EA API: {e}")
-        return None
-
-# --- Google Sheet URLs ---
+# --- Google Sheet CSV URL for Player Stats ---
 sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv"
+
+# --- Google Sheet CSV URL for Team Data ---
 team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
+
+# --- Google Sheet CSV URL for Friendlies Data ---
 friendlies_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1694477682"
+
+# --- Google Sheet CSV URL for Competitive Data ---
 competitive_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1257709827"
 
-# --- Fetch data from Google Sheets ---
+# Fetch data from the Google Sheets
 df = fetch_data(sheet_url)
 df_teams = fetch_data(team_sheet_url)
 df_friendlies = fetch_data(friendlies_sheet_url)
 df_competitive = fetch_data(competitive_sheet_url)
 
-# --- EA API URLs ---
-club_id = "353675"
-overall_stats_url = f"https://proclubs.ea.com/api/fc/clubs/overallStats?platform=common-gen5&clubIds={club_id}"
-last_match_url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={club_id}&matchType=leagueMatch&maxResultCount=1"
-member_stats_url = f"https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId={club_id}"
-
-# --- Fetch data from EA API ---
-overall_stats = fetch_ea_data(overall_stats_url)
-last_match_data = fetch_ea_data(last_match_url)
-member_stats = fetch_ea_data(member_stats_url)
+# --- Helper Function to Convert Data to CSV ---
+def convert_df_to_csv(data):
+    return data.to_csv(index=False).encode('utf-8')
 
 # --- Custom CSS for Red, Black, and Koulen Font ---
 st.markdown("""
@@ -64,6 +52,21 @@ st.markdown("""
         h1, h2, h3, .stat {
             color: #e74c3c;
         }
+        h1 {
+            font-size: 40px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        h2 {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        h3 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
         .highlight {
             color: #2ecc71;
         }
@@ -73,9 +76,25 @@ st.markdown("""
         .stButton button {
             background-color: #e74c3c;
             color: white;
+            font-size: 16px;
+            border: none;
         }
         .stButton button:hover {
             background-color: #c0392b;
+        }
+        .stat {
+            font-size: 20px;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+        .stat span {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .stMarkdown p {
+            color: #ffffff;
+            font-size: 18px;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -85,83 +104,167 @@ st.markdown("""
 st.title("aFc Richman Stats")
 st.caption("Explore and analyze player stats dynamically.")
 
-# --- Tabs for Navigation ---
-tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Charts", "Club", "Team"])
+# Add the description with emphasis
+st.markdown("""
+    <h2 style="font-size:24px; font-weight:bold; color:#2c3e50; text-align:center;">
+        Appearances, goals, and assists are tracked only for 11v11 friendlies and competitive matches.
+    </h2>
+""", unsafe_allow_html=True)
 
-# Tab 1: Overview
-with tab1:
-    st.markdown("<h1 style='text-align: center;'>Overview</h1>", unsafe_allow_html=True)
+# Check if data is loaded successfully
+if not df.empty:
+    # Clean Numeric Columns (Handle NaN Errors)
+    numeric_cols = df.select_dtypes(include=["number"]).columns
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
+        df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-    if overall_stats:
-        st.subheader("Overall Club Stats")
-        st.markdown(f"""
-            **Wins**: {overall_stats['wins']}  
-            **Losses**: {overall_stats['losses']}  
-            **Draws**: {overall_stats['draws']}  
-            **Goals Scored**: {overall_stats['goalsFor']}  
-            **Goals Conceded**: {overall_stats['goalsAgainst']}  
-            **Win Percentage**: {overall_stats['winPercentage']}%
-        """)
+    # --- Tabs for Navigation ---
+    tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Charts", "Club", "Team"])
 
-    if last_match_data and "results" in last_match_data:
-        st.subheader("Last Match")
-        match = last_match_data["results"][0]
-        st.markdown(f"""
-            **Opponent**: {match['awayTeamName']}  
-            **Score**: {match['homeGoals']} - {match['awayGoals']}  
-            **Match Date**: {match['matchDate']}
-        """)
-
-# Tab 2: Charts
-with tab2:
-    st.header("Charts")
-    chart_type = st.radio("Select Chart Type", ["Bar Chart", "Line Chart", "Scatter Plot"])
-    selected_column = st.selectbox("Select a Column to Plot", df.select_dtypes(include=["number"]).columns)
-    if not df.empty and selected_column:
-        chart_kwargs = {
-            "data_frame": df,
-            "x": 'Player' if 'Player' in df.columns else df.index,
-            "y": selected_column,
-            "title": f"{selected_column} by Player",
-            "height": 600,
-        }
-        if chart_type == "Bar Chart":
-            fig = px.bar(**chart_kwargs)
-        elif chart_type == "Line Chart":
-            fig = px.line(**chart_kwargs)
-        elif chart_type == "Scatter Plot":
-            fig = px.scatter(**chart_kwargs)
-        st.plotly_chart(fig, use_container_width=True)
-
-# Tab 3: Club
-with tab3:
-    st.header("Club Overview")
-    if overall_stats:
-        st.markdown(f"""
-            <p class="stat">Wins: <span class="highlight">{overall_stats['wins']}</span></p>
-            <p class="stat">Losses: <span class="negative">{overall_stats['losses']}</span></p>
-            <p class="stat">Draws: <span>{overall_stats['draws']}</span></p>
-            <p class="stat">Goals For: <span>{overall_stats['goalsFor']}</span></p>
-            <p class="stat">Goals Against: <span>{overall_stats['goalsAgainst']}</span></p>
-            <p class="stat">Win Percentage: <span>{overall_stats['winPercentage']}%</span></p>
+    # Tab 1: Overview
+    with tab1:
+        # Larger Header for Overview
+        st.markdown("""
+            <h1 style="font-size:40px; font-weight:bold; color:#e74c3c; text-align:center;">
+            Overview
+            </h1>
         """, unsafe_allow_html=True)
 
-# Tab 4: Team
-with tab4:
-    st.header("Team Information")
-    if member_stats:
+        # Display DataFrame without index
         st.subheader("Player Stats")
-        member_df = pd.DataFrame(member_stats['members'])
-        st.dataframe(member_df)
+        st.dataframe(df.reset_index(drop=True), use_container_width=True, height=600, hide_index=True)
 
-# Manual Refresh Button
+        # Leaderboard Section
+        st.subheader("Top Performers")
+        stat_category = st.selectbox("Select Stat Category", numeric_cols)
+        if stat_category:
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            st.write(f"Top 3 Players for {stat_category}:")
+            st.dataframe(leaderboard, hide_index=True)
+
+        # Player Comparison Section
+        st.subheader("Compare Players")
+        players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
+        if len(players) == 2:
+            comparison = df[df["Player"].isin(players)].set_index("Player")
+            st.write(f"Comparison of {players[0]} vs {players[1]}:")
+            st.dataframe(comparison[numeric_cols], hide_index=False)
+        elif len(players) > 2:
+            st.warning("Please select only two players.")
+
+    # Tab 2: Charts
+    with tab2:
+        st.header("Charts")
+
+        # Dynamic Chart Type Selection
+        chart_type = st.radio("Select Chart Type", ["Bar Chart", "Line Chart", "Scatter Plot"])
+
+        # Generate Chart
+        st.subheader(f"{chart_type} of Player Stats")
+        selected_column = st.selectbox("Select a Column to Plot", numeric_cols)
+        if not df.empty:
+            chart_kwargs = {
+                "data_frame": df,
+                "x": 'Player' if 'Player' in df.columns else df.index,
+                "y": selected_column,
+                "title": f"{selected_column} by Player",
+                "labels": {"Player": "Player Name", selected_column: "Value"},
+                "height": 600,
+            }
+
+            if chart_type == "Bar Chart":
+                fig = px.bar(**chart_kwargs)
+            elif chart_type == "Line Chart":
+                fig = px.line(**chart_kwargs)
+            elif chart_type == "Scatter Plot":
+                fig = px.scatter(**chart_kwargs)
+
+            st.plotly_chart(fig, use_container_width=True)
+
+    # Tab 3: Club Section
+    with tab3:
+        st.header("Overall Match Stats for 11v11 Friendlies & Competitive Matches")
+        
+        try:
+            # Ensure that both dataframes are not empty
+            if not df_friendlies.empty and not df_competitive.empty:
+                # Count the games played in both datasets based on "Played" column (assuming it's present)
+                total_played_friendlies = df_friendlies['Played'].sum()
+                total_played_competitive = df_competitive['Played'].sum()
+                
+                # Sum total games played
+                total_played = total_played_friendlies + total_played_competitive
+
+                # Sum other stats from both datasets
+                total_wins = df_friendlies['Win'].sum() + df_competitive['Win'].sum()
+                total_draws = df_friendlies['Draw'].sum() + df_competitive['Draw'].sum()
+                total_losses = df_friendlies['Lost'].sum() + df_competitive['Lost'].sum()
+                total_gf = df_friendlies['GF'].sum() + df_competitive['GF'].sum()
+                total_ga = df_friendlies['GA'].sum() + df_competitive['GA'].sum()
+            else:
+                # Handle case where one of the datasets is empty
+                if df_friendlies.empty:
+                    total_played = df_competitive['Played'].sum()
+                    total_wins = df_competitive['Win'].sum()
+                    total_draws = df_competitive['Draw'].sum()
+                    total_losses = df_competitive['Lost'].sum()
+                    total_gf = df_competitive['GF'].sum()
+                    total_ga = df_competitive['GA'].sum()
+                else:
+                    total_played = df_friendlies['Played'].sum()
+                    total_wins = df_friendlies['Win'].sum()
+                    total_draws = df_friendlies['Draw'].sum()
+                    total_losses = df_friendlies['Lost'].sum()
+                    total_gf = df_friendlies['GF'].sum()
+                    total_ga = df_friendlies['GA'].sum()
+
+            # Calculate goal difference and win percentage
+            total_gd = total_gf - total_ga
+            win_percentage = (total_wins / total_played) * 100 if total_played > 0 else 0
+
+            # Round to whole numbers for display
+            total_played = int(total_played)
+            total_wins = int(total_wins)
+            total_draws = int(total_draws)
+            total_losses = int(total_losses)
+            total_gf = int(total_gf)
+            total_ga = int(total_ga)
+            total_gd = int(total_gd)
+            win_percentage = round(win_percentage)  # Remove decimal points
+
+            # Display stats with enhanced style
+            st.markdown(f'<p class="stat">Total Games Played: <span>{total_played}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Total Wins: <span class="highlight">{total_wins}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Total Draws: <span>{total_draws}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Total Losses: <span class="negative">{total_losses}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Goals For (GF): <span>{total_gf}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Goals Against (GA): <span>{total_ga}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Goal Difference (GD): <span class="{"highlight" if total_gd >= 0 else "negative"}">{total_gd}</span></p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="stat">Win Percentage: <span>{win_percentage}%</span></p>', unsafe_allow_html=True)
+
+        except Exception as e:
+            st.error(f"An error occurred while calculating the stats: {e}")
+
+    # Tab 4: Team Section
+    with tab4:
+        st.header("Team Information")
+        
+        if not df_teams.empty:
+            # Show Team Data sorted by Position without index
+            df_teams_sorted = df_teams.sort_values(by='Position')
+            st.subheader("Players by Position")
+            st.dataframe(df_teams_sorted[['Player', 'Position']], use_container_width=True, height=600, hide_index=True)
+        else:
+            st.warning("No team data available.")
+else:
+    st.warning("No data available. Please check the Google Sheet URL or try again later.")
+
+# --- Manual Refresh Button ---
 if st.button("Refresh Data"):
     with st.spinner('Refreshing data...'):
         df = fetch_data(sheet_url)
         df_teams = fetch_data(team_sheet_url)
         df_friendlies = fetch_data(friendlies_sheet_url)
         df_competitive = fetch_data(competitive_sheet_url)
-        overall_stats = fetch_ea_data(overall_stats_url)
-        last_match_data = fetch_ea_data(last_match_url)
-        member_stats = fetch_ea_data(member_stats_url)
         st.success("Data refreshed successfully!")
