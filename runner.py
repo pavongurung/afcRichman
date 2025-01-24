@@ -1,4 +1,4 @@
-SOT#sdkE*B4Uuz!1F8Kkimport streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 
