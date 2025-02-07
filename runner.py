@@ -96,12 +96,13 @@ if next_matches:
                 hours, seconds = divmod(seconds, 3600)
                 minutes, seconds = divmod(seconds, 60)
 
-                # 🔥 Ensure Match 2 is **exactly 30 minutes behind Match 1**
+                # 🔥 Ensure Match 2 is **exactly 30 minutes after Match 1**
                 if idx == 1:
-                    minutes += 30
-                    if minutes >= 60:
-                        minutes -= 60
-                        hours += 1
+                    # Correctly add 30 mins to the time left
+                    time_remaining += datetime.timedelta(minutes=30)
+                    days, seconds = divmod(time_remaining.total_seconds(), 86400)
+                    hours, seconds = divmod(seconds, 3600)
+                    minutes, seconds = divmod(seconds, 60)
 
                 countdown_placeholder.markdown(f"""
                 <div class="countdown-box">
@@ -115,4 +116,3 @@ if next_matches:
                 countdown_placeholder.markdown("<h3>Match is LIVE!</h3>", unsafe_allow_html=True)
 
         time.sleep(1)  # Update every second
-
