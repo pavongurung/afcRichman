@@ -22,12 +22,6 @@ st.markdown("""
             text-align: center;
             margin-bottom: 5px;
         }
-        h2 {
-            font-size: 30px;
-            font-weight: bold;
-            color: #ffffff;
-            text-align: center;
-        }
         .stButton button {
             background-color: #e74c3c;
             color: white;
@@ -37,7 +31,7 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .fixtures-table {
+        .stTable {
             text-align: center;
             font-size: 18px;
         }
@@ -47,7 +41,6 @@ st.markdown("""
 
 # --- BIG HEADER FOR AFC RICHMAN ---
 st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
-st.markdown("<h2>QFG STATS</h2>", unsafe_allow_html=True)
 
 # --- Navigation Tabs for Sections ---
 tab1, tab2, tab3 = st.tabs(["QFG Stats", "Standings", "Fixtures"])
@@ -80,6 +73,9 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
+        # Fix Indexing (Start from 1)
+        df.index = range(1, len(df) + 1)
+
         # Display DataFrame
         st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
@@ -88,6 +84,7 @@ with tab1:
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            leaderboard.index = range(1, len(leaderboard) + 1)  # Fix index
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
 
@@ -158,8 +155,11 @@ with tab3:
         ("April 14, 2025", "East Clan", "9:30 PM"),
     ]
 
-    # Convert to DataFrame and Display
+    # Convert to DataFrame and Fix Indexing
     df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
+    df_fixtures.index = range(1, len(df_fixtures) + 1)
+
+    # Display Table
     st.table(df_fixtures.style.set_properties(**{"text-align": "center"}))
 
 # --- Manual Refresh Button ---
