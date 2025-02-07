@@ -13,7 +13,7 @@ def fetch_data(sheet_url: str):
         df = pd.read_csv(sheet_url)
         if df.empty:
             st.warning("The fetched data is empty.")
-        # Remove empty rows
+        # Remove completely empty rows
         df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
@@ -26,7 +26,7 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrj
 # Fetch data
 df = fetch_data(sheet_url)
 
-# --- Custom CSS for Global Styling ---
+# --- Custom CSS to Center Table Values ---
 st.markdown("""
     <style>
         body {
@@ -50,15 +50,25 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        /* Center all table headers and data cells */
-        .dataframe th, .dataframe td {
-            text-align: center !important;
-            vertical-align: middle !important;
+        /* Center Table Content */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        /* Center tables horizontally */
-        .dataframe {
-            margin-left: auto !important;
-            margin-right: auto !important;
+        th, td {
+            text-align: center !important;
+            padding: 8px;
+        }
+        th {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 16px;
+        }
+        tr:nth-child(even) {
+            background-color: #333;
+        }
+        tr:nth-child(odd) {
+            background-color: #222;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -70,24 +80,20 @@ tab1, tab2 = st.tabs(["QFG Stats", "Standings"])
 # --- QFG STATS TAB ---
 with tab1:
     st.title("QFG STATS")
-    
+
     if not df.empty:
-        # Convert numeric columns
+        # Convert numeric columns to avoid errors
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
         # Fix Indexing (Ensure Player Rankings Start from 1)
         df.index = range(1, len(df) + 1)
 
-        # **Player Stats Table (Centered via CSS)**
+        # **Player Stats Table (Centered)**
         st.subheader("Player Stats")
-        st.dataframe(
-            df,
-            use_container_width=True, 
-            height=600
-        )
+        st.markdown(df.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
 
         # **Leaderboard Section**
         st.subheader("Top Performers")
@@ -96,7 +102,7 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
             leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard)
+            st.markdown(leaderboard.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
 
         # **Player Comparison Section**
         st.subheader("Compare Players")
@@ -104,7 +110,7 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.dataframe(comparison[numeric_cols])
+            st.markdown(comparison[numeric_cols].style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
