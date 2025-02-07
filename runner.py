@@ -26,7 +26,7 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrj
 # Fetch data
 df = fetch_data(sheet_url)
 
-# --- Custom CSS to Center Table Values ---
+# --- Custom CSS for Styling ---
 st.markdown("""
     <style>
         body {
@@ -78,20 +78,22 @@ st.markdown("""
             width: 100%;
             border-collapse: collapse;
         }
-        th, td {
+        th {
+            background-color: #e74c3c !important;
+            color: white !important;
+            font-size: 16px;
+            text-align: center;
+            padding: 8px;
+        }
+        td {
             text-align: center !important;
             padding: 8px;
         }
-        th {
-            background-color: #e74c3c;
-            color: white;
-            font-size: 16px;
-        }
         tr:nth-child(even) {
-            background-color: #333;
+            background-color: #222 !important;
         }
         tr:nth-child(odd) {
-            background-color: #222;
+            background-color: #333 !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -111,9 +113,16 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Centered HTML Table
+        # Custom Table Styling to Fix Colors
         st.subheader("Player Stats")
-        st.markdown(df.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
+        st.markdown(df.style.set_properties(
+            **{'text-align': 'center'}
+        ).set_table_styles([
+            {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
+            {'selector': 'td', 'props': 'text-align: center;'},
+            {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
+            {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
+        ]).to_html(), unsafe_allow_html=True)
 
         # Leaderboard Section
         st.subheader("Top Performers")
@@ -121,7 +130,14 @@ with tab1:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.markdown(leaderboard.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
+            st.markdown(leaderboard.style.set_properties(
+                **{'text-align': 'center'}
+            ).set_table_styles([
+                {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
+                {'selector': 'td', 'props': 'text-align: center;'},
+                {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
+                {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
+            ]).to_html(), unsafe_allow_html=True)
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -129,7 +145,14 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.markdown(comparison[numeric_cols].style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
+            st.markdown(comparison[numeric_cols].style.set_properties(
+                **{'text-align': 'center'}
+            ).set_table_styles([
+                {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
+                {'selector': 'td', 'props': 'text-align: center;'},
+                {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
+                {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
+            ]).to_html(), unsafe_allow_html=True)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
