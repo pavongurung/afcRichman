@@ -26,24 +26,13 @@ st.markdown("""
         h2 {
             font-size: 30px;
             font-weight: bold;
-            color: #ffffff;
+            color: #ffffff";
             text-align: center;
         }
-        .stButton button {
-            background-color: #e74c3c;
-            color: white;
-            font-size: 16px;
-            border: none;
-        }
-        .stButton button:hover {
-            background-color: #c0392b;
-        }
-        /* Center text in tables */
-        table {
+        .stDataFrame table {
             text-align: center;
-            font-size: 18px;
         }
-        th, td {
+        .stDataFrame td {
             text-align: center !important;
         }
     </style>
@@ -56,7 +45,7 @@ st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
 # --- Navigation Tabs for Sections ---
 tab1, tab2, tab3 = st.tabs(["Player Stats", "Standings", "Fixtures"])
 
-# --- QFG STATS TAB ---
+# --- PLAYER STATS TAB ---
 with tab1:
     st.subheader("Player Stats")
 
@@ -78,17 +67,14 @@ with tab1:
     df = fetch_data(sheet_url)
 
     if not df.empty:
-        # Remove Index
-        df.reset_index(drop=True, inplace=True)
-
         # Clean Numeric Columns (Handle NaN Errors)
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Display DataFrame with Center Alignment
-        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
+        # Remove default index & display table
+        st.dataframe(df.style.hide(axis="index").set_properties(**{"text-align": "center"}), use_container_width=True)
 
         # Leaderboard Section
         st.subheader("Top Performers")
@@ -96,7 +82,7 @@ with tab1:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard.style.hide_index().set_properties(**{"text-align": "center"}))
+            st.dataframe(leaderboard.style.hide(axis="index").set_properties(**{"text-align": "center"}))
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -169,6 +155,6 @@ with tab3:
     df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
     df_fixtures["DateTime"] = pd.to_datetime(df_fixtures["Date"] + " " + df_fixtures["Time"])
     upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
-    
+
     st.subheader("Upcoming Fixtures")
-    st.table(upcoming_fixtures[["Date", "Opponent", "Time"]].style.hide_index().set_properties(**{"text-align": "center"}))
+    st.table(upcoming_fixtures[["Date", "Opponent", "Time"]].style.hide(axis="index").set_properties(**{"text-align": "center"})))
