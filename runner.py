@@ -14,7 +14,7 @@ def fetch_data(sheet_url: str):
         df = pd.read_csv(sheet_url)
         if df.empty:
             st.warning("The fetched data is empty.")
-        # Drop completely empty rows
+        # Remove empty rows
         df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
@@ -74,7 +74,7 @@ st.markdown("""
         .nav-tabs button:hover {
             background-color: #c0392b;
         }
-        /* Center numeric table values */
+        /* Center numeric values in table */
         .stDataFrame td {
             text-align: center !important;
         }
@@ -83,8 +83,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Navigation Tabs for Sections ---
-st.markdown('<div class="nav-tabs">', unsafe_allow_html=True)
-
 tab1, tab2 = st.tabs(["QFG Stats", "Standings"])
 
 # --- QFG STATS TAB ---
@@ -98,9 +96,9 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Display DataFrame (with centered numbers)
+        # Center data and display DataFrame
         st.subheader("Player Stats")
-        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600, hide_index=True)
+        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
         # Leaderboard Section
         st.subheader("Top Performers")
@@ -108,7 +106,7 @@ with tab1:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}), hide_index=True)
+            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -116,7 +114,7 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.dataframe(comparison[numeric_cols].style.set_properties(**{"text-align": "center"}), hide_index=False)
+            st.dataframe(comparison[numeric_cols].style.set_properties(**{"text-align": "center"}))
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
@@ -153,4 +151,3 @@ if st.button("Refresh Data"):
     with st.spinner('Refreshing data...'):
         df = fetch_data(sheet_url)
         st.success("Data refreshed successfully!")
- 
