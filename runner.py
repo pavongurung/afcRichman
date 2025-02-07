@@ -13,7 +13,7 @@ def fetch_data(sheet_url: str):
         df = pd.read_csv(sheet_url)
         if df.empty:
             st.warning("The fetched data is empty.")
-        # Remove completely empty rows
+        # Remove empty rows
         df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
@@ -50,6 +50,11 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
+        /* Center text and numbers in tables */
+        .dataframe th, .dataframe td {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -77,7 +82,7 @@ with tab1:
             df.style.set_table_styles(
                 [{'selector': 'th', 'props': [('text-align', 'center')]}] + 
                 [{'selector': 'td', 'props': [('text-align', 'center')]}]
-            ),
+            ).hide(axis="index"),  # Hides the default index
             use_container_width=True, 
             height=600
         )
@@ -93,7 +98,7 @@ with tab1:
                 leaderboard.style.set_table_styles(
                     [{'selector': 'th', 'props': [('text-align', 'center')]}] +
                     [{'selector': 'td', 'props': [('text-align', 'center')]}]
-                )
+                ).hide(axis="index")  # Hides the index
             )
 
         # **Player Comparison Section**
@@ -106,7 +111,7 @@ with tab1:
                 comparison[numeric_cols].style.set_table_styles(
                     [{'selector': 'th', 'props': [('text-align', 'center')]}] +
                     [{'selector': 'td', 'props': [('text-align', 'center')]}]
-                )
+                ).hide(axis="index")  # Hides the index
             )
         elif len(players) > 2:
             st.warning("Please select only two players.")
