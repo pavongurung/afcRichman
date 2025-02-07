@@ -50,7 +50,7 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        /* Center Table Content */
+        /* Center All Table Content */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -75,6 +75,10 @@ st.markdown("""
         .comparison th, .comparison td {
             background-color: #222 !important;
             color: white !important;
+        }
+        /* Remove Empty Box in Compare Players */
+        .stMultiSelect {
+            background-color: #222 !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
