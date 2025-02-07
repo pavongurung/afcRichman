@@ -65,14 +65,16 @@ st.markdown("""
             font-size: 16px;
         }
         tr:nth-child(even) {
-            background-color: #333;
+            background-color: #333 !important;
         }
         tr:nth-child(odd) {
-            background-color: #222;
+            background-color: #222 !important;
         }
         /* Fix leaderboard & comparison table colors */
-        .leaderboard, .comparison {
-            background-color: transparent !important;
+        .leaderboard th, .leaderboard td,
+        .comparison th, .comparison td {
+            background-color: #222 !important;
+            color: white !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -106,7 +108,10 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
             leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
-            st.markdown(leaderboard.style.set_properties(**{'text-align': 'center'}).set_table_attributes('class="leaderboard"').to_html(), unsafe_allow_html=True)
+            st.markdown(leaderboard.style
+                        .set_properties(**{'text-align': 'center'})
+                        .set_table_attributes('class="leaderboard"')
+                        .to_html(), unsafe_allow_html=True)
 
         # **Player Comparison Section**
         st.subheader("Compare Players")
@@ -114,7 +119,10 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.markdown(comparison[numeric_cols].style.set_properties(**{'text-align': 'center'}).set_table_attributes('class="comparison"').to_html(), unsafe_allow_html=True)
+            st.markdown(comparison[numeric_cols]
+                        .style.set_properties(**{'text-align': 'center'})
+                        .set_table_attributes('class="comparison"')
+                        .to_html(), unsafe_allow_html=True)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
