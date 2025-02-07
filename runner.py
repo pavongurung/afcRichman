@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
@@ -14,7 +13,7 @@ def fetch_data(sheet_url: str):
         df = pd.read_csv(sheet_url)
         if df.empty:
             st.warning("The fetched data is empty.")
-        # Remove empty rows
+        # Remove completely empty rows
         df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
@@ -27,7 +26,7 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrj
 # Fetch data
 df = fetch_data(sheet_url)
 
-# --- Custom CSS for Styling ---
+# --- Custom CSS to Center Table Values ---
 st.markdown("""
     <style>
         body {
@@ -74,9 +73,25 @@ st.markdown("""
         .nav-tabs button:hover {
             background-color: #c0392b;
         }
-        /* Center numeric values in table */
-        .stDataFrame td {
+        /* Center Table Content */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
             text-align: center !important;
+            padding: 8px;
+        }
+        th {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 16px;
+        }
+        tr:nth-child(even) {
+            background-color: #333;
+        }
+        tr:nth-child(odd) {
+            background-color: #222;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -88,17 +103,17 @@ tab1, tab2 = st.tabs(["QFG Stats", "Standings"])
 # --- QFG STATS TAB ---
 with tab1:
     st.title("QFG STATS")
-    
+
     if not df.empty:
-        # Clean Numeric Columns (Handle NaN Errors)
+        # Convert numeric columns to avoid errors
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Center data and display DataFrame
+        # Centered HTML Table
         st.subheader("Player Stats")
-        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
+        st.markdown(df.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
 
         # Leaderboard Section
         st.subheader("Top Performers")
@@ -106,7 +121,7 @@ with tab1:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
+            st.markdown(leaderboard.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -114,7 +129,7 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.dataframe(comparison[numeric_cols].style.set_properties(**{"text-align": "center"}))
+            st.markdown(comparison[numeric_cols].style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
