@@ -1,18 +1,13 @@
 import streamlit as st
-import datetime
-import pytz
-import time
+import pandas as pd
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="AFC Richman - Fixtures",
+    page_title="AFC Richman - QFG Stats",
     layout="wide"
 )
 
-# --- Set EST Timezone ---
-est = pytz.timezone("America/New_York")
-
-# --- Custom CSS for Minimalist Styling ---
+# --- Custom CSS for Styling ---
 st.markdown("""
     <style>
         body {
@@ -33,86 +28,142 @@ st.markdown("""
             color: #ffffff;
             text-align: center;
         }
-        .countdown-box {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            font-size: 35px;
-            font-weight: bold;
-            margin-top: 10px;
+        .stButton button {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 16px;
+            border: none;
         }
-        .countdown-item {
-            color: #e74c3c;
-            background: #222;
-            padding: 10px;
-            border-radius: 10px;
+        .stButton button:hover {
+            background-color: #c0392b;
+        }
+        .fixtures-table {
             text-align: center;
-            width: 80px;
+            font-size: 18px;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# --- BIG HEADER ---
+# --- BIG HEADER FOR AFC RICHMAN ---
 st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
-st.markdown("<h2>Upcoming Fixtures</h2>", unsafe_allow_html=True)
+st.markdown("<h2>QFG STATS</h2>", unsafe_allow_html=True)
 
-# --- Fixtures Data ---
-fixtures = [
-    ("February 10, 2025", "Real Smokey", "9:00 PM"),
-    ("February 10, 2025", "Purple Hollow", "9:30 PM"),
-]
+# --- Navigation Tabs for Sections ---
+tab1, tab2, tab3 = st.tabs(["QFG Stats", "Standings", "Fixtures"])
 
-# --- Get Current Time in EST ---
-current_time_est = datetime.datetime.now(est)
+# --- QFG STATS TAB ---
+with tab1:
+    st.subheader("Player Stats")
 
-# --- Find Next Matches ---
-next_matches = []
-for match_date, opponent, time_str in fixtures:
-    match_datetime = datetime.datetime.strptime(f"{match_date} {time_str}", "%B %d, %Y %I:%M %p")
-    match_datetime = est.localize(match_datetime)  # Convert to EST timezone
+    # --- Fetch Data from Google Sheet ---
+    @st.cache_data
+    def fetch_data(sheet_url: str):
+        try:
+            df = pd.read_csv(sheet_url)
+            if df.empty:
+                st.warning("The fetched data is empty.")
+            df.dropna(how="all", inplace=True)  # Remove empty rows
+            return df
+        except Exception as e:
+            st.error(f"Error fetching data: {e}")
+            return pd.DataFrame()
 
-    if match_datetime > current_time_est:
-        next_matches.append((match_date, opponent, match_datetime))
+    # --- Google Sheet CSV URL for QFG Stats ---
+    sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrjFU7jo5FNA7YbY8ME/export?format=csv&gid=421420318"
+    df = fetch_data(sheet_url)
 
-# --- Display Matches with LIVE Countdown ---
-if next_matches:
-    countdown_placeholders = []
+    if not df.empty:
+        # Clean Numeric Columns (Handle NaN Errors)
+        numeric_cols = df.select_dtypes(include=["number"]).columns
+        for col in numeric_cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
+            df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-    for i, (match_date, opponent, match_datetime) in enumerate(next_matches):
-        st.subheader(f"Upcoming Match {i+1}: {opponent} on {match_date} at {match_datetime.strftime('%I:%M %p EST')}")
+        # Display DataFrame
+        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
-        countdown_placeholder = st.empty()
-        countdown_placeholders.append((countdown_placeholder, match_datetime))
+        # Leaderboard Section
+        st.subheader("Top Performers")
+        stat_category = st.selectbox("Select Stat Category", numeric_cols)
+        if stat_category:
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            st.write(f"Top 3 Players for {stat_category}:")
+            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
 
-    # --- Live Countdown Loop ---
-    while True:
-        current_time_est = datetime.datetime.now(est)  # Update current time
+        # Player Comparison Section
+        st.subheader("Compare Players")
+        players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
+        if len(players) == 2:
+            comparison = df[df["Player"].isin(players)].set_index("Player")
+            st.write(f"Comparison of {players[0]} vs {players[1]}:")
+            st.dataframe(comparison[numeric_cols].style.set_properties(**{"text-align": "center"}))
+        elif len(players) > 2:
+            st.warning("Please select only two players.")
 
-        for idx, (countdown_placeholder, match_datetime) in enumerate(countdown_placeholders):
-            time_remaining = match_datetime - current_time_est
+# --- STANDINGS TAB ---
+with tab2:
+    st.title("League Standings")
 
-            if time_remaining.total_seconds() > 0:
-                days, seconds = divmod(time_remaining.total_seconds(), 86400)
-                hours, seconds = divmod(seconds, 3600)
-                minutes, seconds = divmod(seconds, 60)
+    st.markdown("""
+    <p style="text-align: center; font-size: 18px; color: white;">
+        Click the button below to view the latest standings.
+    </p>
+    """, unsafe_allow_html=True)
 
-                # 🔥 Ensure Match 2 is **exactly 30 minutes after Match 1**
-                if idx == 1:
-                    # Correctly add 30 mins to the time left
-                    time_remaining += datetime.timedelta(minutes=30)
-                    days, seconds = divmod(time_remaining.total_seconds(), 86400)
-                    hours, seconds = divmod(seconds, 3600)
-                    minutes, seconds = divmod(seconds, 60)
+    # Button to Open Standings in a New Tab
+    st.markdown("""
+    <div style="text-align: center;">
+        <a href="https://questforglory.leaguerepublic.com/standingsForDate/43160383/2/-1/-1.html" target="_blank">
+            <button style="
+                font-size: 20px;
+                font-weight: bold;
+                color: white;
+                background-color: #e74c3c;
+                padding: 10px 20px;
+                border: none;
+                cursor: pointer;
+                transition: 0.3s;
+            ">View Standings</button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
 
-                countdown_placeholder.markdown(f"""
-                <div class="countdown-box">
-                    <div class="countdown-item">{int(days)}<br><span style="font-size: 18px;">DAYS</span></div>
-                    <div class="countdown-item">{int(hours)}<br><span style="font-size: 18px;">HOURS</span></div>
-                    <div class="countdown-item">{int(minutes)}<br><span style="font-size: 18px;">MINS</span></div>
-                    <div class="countdown-item">{int(seconds)}<br><span style="font-size: 18px;">SECS</span></div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                countdown_placeholder.markdown("<h3>Match is LIVE!</h3>", unsafe_allow_html=True)
+# --- FIXTURES TAB ---
+with tab3:
+    st.title("Fixtures")
 
-        time.sleep(1)  # Update every second
+    # --- Fixture Data ---
+    fixtures = [
+        ("February 3, 2025", "Trakas HDSPM", "9:00 PM"),
+        ("February 3, 2025", "Titans Inferno", "9:30 PM"),
+        ("February 6, 2025", "RTG Academy", "8:30 PM"),
+        ("February 6, 2025", "Reggae Boyzzz", "9:00 PM"),
+        ("February 10, 2025", "Real Smokey", "9:00 PM"),
+        ("February 10, 2025", "Purple Hollow", "9:30 PM"),
+        ("March 3, 2025", "FC Wockhardt", "9:00 PM"),
+        ("March 3, 2025", "FC Dragonfire", "9:30 PM"),
+        ("March 6, 2025", "East Clan", "8:30 PM"),
+        ("March 6, 2025", "Trakas HDSPM", "9:00 PM"),
+        ("March 17, 2025", "Titans Inferno", "9:00 PM"),
+        ("March 17, 2025", "RTG Academy", "9:30 PM"),
+        ("March 31, 2025", "NB Rovers", "9:30 PM"),
+        ("April 3, 2025", "Out of Shape FC", "8:30 PM"),
+        ("April 3, 2025", "Kings TM", "9:00 PM"),
+        ("April 7, 2025", "Raptors FC", "9:00 PM"),
+        ("April 7, 2025", "Jogo Bonito", "9:30 PM"),
+        ("April 10, 2025", "Girth City", "8:30 PM"),
+        ("April 10, 2025", "FC Wockhardt", "9:00 PM"),
+        ("April 14, 2025", "FC Dragonfire", "9:00 PM"),
+        ("April 14, 2025", "East Clan", "9:30 PM"),
+    ]
+
+    # Convert to DataFrame and Display
+    df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
+    st.table(df_fixtures.style.set_properties(**{"text-align": "center"}))
+
+# --- Manual Refresh Button ---
+if st.button("Refresh Data"):
+    with st.spinner('Refreshing data...'):
+        df = fetch_data(sheet_url)
+        st.success("Data refreshed successfully!")
