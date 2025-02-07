@@ -5,7 +5,7 @@ import time
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="AFC Richman - QFG Stats",
+    page_title="AFC Richman - Fixtures",
     layout="wide"
 )
 
@@ -113,7 +113,9 @@ for match_date, opponent, time_str in fixtures:
 if next_matches:
     for i, (match_date, opponent, match_datetime) in enumerate(next_matches):
         st.subheader(f"Upcoming Match {i+1}: {opponent} on {match_date} at {match_datetime.strftime('%I:%M %p')}")
-        
+
+        countdown_placeholder = st.empty()
+
         # --- Real-Time Countdown Timer ---
         while True:
             time_remaining = match_datetime - datetime.datetime.now()
@@ -121,7 +123,7 @@ if next_matches:
             hours, seconds = divmod(seconds, 3600)
             minutes, seconds = divmod(seconds, 60)
 
-            st.markdown(f"""
+            countdown_placeholder.markdown(f"""
             <div class="countdown-box">
                 <div class="countdown-item">{int(days)}<br><span style="font-size: 18px;">DAYS</span></div>
                 <div class="countdown-item">{int(hours)}<br><span style="font-size: 18px;">HOURS</span></div>
@@ -130,8 +132,7 @@ if next_matches:
             </div>
             """, unsafe_allow_html=True)
 
-            # Update the countdown every second
+            # Update countdown every second
             time.sleep(1)
-            st.experimental_rerun()
 else:
     st.subheader("No upcoming matches scheduled.")
