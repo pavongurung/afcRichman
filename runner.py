@@ -26,7 +26,7 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrj
 # Fetch data
 df = fetch_data(sheet_url)
 
-# --- Custom CSS for Styling ---
+# --- Custom CSS for Global Styling ---
 st.markdown("""
     <style>
         body {
@@ -40,7 +40,7 @@ st.markdown("""
             color: #e74c3c;
             text-align: center; 
         }
-        /* Style buttons */
+        /* Button Styling */
         .stButton button {
             background-color: #e74c3c;
             color: white;
@@ -49,10 +49,6 @@ st.markdown("""
         }
         .stButton button:hover {
             background-color: #c0392b;
-        }
-        /* Center all table numbers */
-        .stDataFrame td {
-            text-align: center !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -66,18 +62,25 @@ with tab1:
     st.title("QFG STATS")
     
     if not df.empty:
-        # Convert numeric columns to avoid errors
+        # Convert numeric columns
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # **Fix Indexing** (Ensure Player Rankings Start from 1 Instead of 0)
+        # Fix Indexing (Ensure Player Rankings Start from 1)
         df.index = range(1, len(df) + 1)
 
-        # **Player Stats Table**
+        # **Player Stats Table with Centered Numbers**
         st.subheader("Player Stats")
-        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
+        st.dataframe(
+            df.style.set_table_styles(
+                [{'selector': 'th', 'props': [('text-align', 'center')]}] + 
+                [{'selector': 'td', 'props': [('text-align', 'center')]}]
+            ),
+            use_container_width=True, 
+            height=600
+        )
 
         # **Leaderboard Section**
         st.subheader("Top Performers")
@@ -86,7 +89,12 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
             leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
+            st.dataframe(
+                leaderboard.style.set_table_styles(
+                    [{'selector': 'th', 'props': [('text-align', 'center')]}] +
+                    [{'selector': 'td', 'props': [('text-align', 'center')]}]
+                )
+            )
 
         # **Player Comparison Section**
         st.subheader("Compare Players")
@@ -94,7 +102,12 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.dataframe(comparison[numeric_cols].style.set_properties(**{"text-align": "center"}))
+            st.dataframe(
+                comparison[numeric_cols].style.set_table_styles(
+                    [{'selector': 'th', 'props': [('text-align', 'center')]}] +
+                    [{'selector': 'td', 'props': [('text-align', 'center')]}]
+                )
+            )
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
