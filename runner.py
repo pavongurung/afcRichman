@@ -25,7 +25,7 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrj
 # Fetch data
 df = fetch_data(sheet_url)
 
-# --- Custom CSS for Red, Black, and Koulen Font ---
+# --- Custom CSS for Styling ---
 st.markdown("""
     <style>
         body {
@@ -53,6 +53,14 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
+        .section-title {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -60,7 +68,9 @@ st.markdown("""
 # --- App Layout ---
 st.title("QFG STATS")
 
-# Check if data is loaded successfully
+# --- Player Stats Section ---
+st.markdown('<div class="section-title">Player Stats</div>', unsafe_allow_html=True)
+
 if not df.empty:
     # Clean Numeric Columns (Handle NaN Errors)
     numeric_cols = df.select_dtypes(include=["number"]).columns
@@ -68,12 +78,11 @@ if not df.empty:
         df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
         df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-    # Display DataFrame without index
-    st.subheader("Player Stats")
+    # Display DataFrame
     st.dataframe(df.reset_index(drop=True), use_container_width=True, height=600, hide_index=True)
 
     # Leaderboard Section
-    st.subheader("Top Performers")
+    st.markdown('<div class="section-title">Top Performers</div>', unsafe_allow_html=True)
     stat_category = st.selectbox("Select Stat Category", numeric_cols)
     if stat_category:
         leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
@@ -81,7 +90,7 @@ if not df.empty:
         st.dataframe(leaderboard, hide_index=True)
 
     # Player Comparison Section
-    st.subheader("Compare Players")
+    st.markdown('<div class="section-title">Compare Players</div>', unsafe_allow_html=True)
     players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
     if len(players) == 2:
         comparison = df[df["Player"].isin(players)].set_index("Player")
@@ -89,6 +98,17 @@ if not df.empty:
         st.dataframe(comparison[numeric_cols], hide_index=False)
     elif len(players) > 2:
         st.warning("Please select only two players.")
+
+# --- League Standings Section ---
+st.markdown('<div class="section-title">League Standings</div>', unsafe_allow_html=True)
+
+# LeagueRepublic Standings URL
+league_url = "https://questforglory.leaguerepublic.com/standingsForDate/43160383/2/-1/-1.html"
+
+# Embed the Standings Page in Streamlit
+st.components.v1.html(f'''
+    <iframe src="{league_url}" width="100%" height="800px" style="border:none;"></iframe>
+''', height=800)
 
 # --- Manual Refresh Button ---
 if st.button("Refresh Data"):
