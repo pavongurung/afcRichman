@@ -111,7 +111,7 @@ with tab1:
 # --- STANDINGS TAB ---
 with tab2:
     st.title("League Standings")
-
+ 
     st.markdown("""
     <p style="text-align: center; font-size: 18px; color: white;">
         Click the button below to view the latest standings.
