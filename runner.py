@@ -106,4 +106,21 @@ if next_matches:
         st.markdown(f"""
         <div class="countdown-box">
             <div class="countdown-item">{int(days)}<br><span style="font-size: 18px;">DAYS</span></div>
-            <div class
+            <div class="countdown-item">{int(hours)}<br><span style="font-size: 18px;">HOURS</span></div>
+            <div class="countdown-item">{int(minutes)}<br><span style="font-size: 18px;">MINS</span></div>
+            <div class="countdown-item">{int(seconds)}<br><span style="font-size: 18px;">SECS</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+else:
+    st.subheader("No upcoming matches scheduled.")
+
+# --- Auto Refresh Every 60s for Live Countdown ---
+st.markdown("""
+    <script>
+        function autoRefresh() {
+            setTimeout(() => { location.reload(); }, 60000);
+        }
+        autoRefresh();
+    </script>
+""", unsafe_allow_html=True)
