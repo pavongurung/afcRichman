@@ -140,7 +140,7 @@ with tab1:
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
-# --- STANDINGS TAB ---
+# --- STANDINGS TAB --- 
 with tab2:
     st.title("League Standings")
 
