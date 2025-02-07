@@ -54,7 +54,7 @@ tab1, tab2, tab3 = st.tabs(["Player Stats", "Standings", "Fixtures"])
 
 # --- PLAYER STATS TAB ---
 with tab1:
-    st.subheader("Q4G Player Stats")
+    st.subheader("Player Stats")
 
     # --- Fetch Data from Google Sheet ---
     @st.cache_data
