@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="QFG Stats",
+    page_title="AFC Richman - QFG Stats",
     layout="wide"
 )
 
@@ -36,15 +35,17 @@ st.markdown("""
             color: #ffffff;
         }
         h1 {
-            font-size: 40px;
+            font-size: 50px;
             font-weight: bold;
             color: #e74c3c;
-            text-align: center; 
+            text-align: center;
+            margin-bottom: 5px;
         }
-        .stat {
-            font-size: 22px;
+        h2 {
+            font-size: 30px;
             font-weight: bold;
             color: #ffffff;
+            text-align: center;
         }
         .stButton button {
             background-color: #e74c3c;
@@ -55,25 +56,6 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-        }
-        .nav-tabs button {
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            background-color: #e74c3c;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .nav-tabs button:hover {
-            background-color: #c0392b;
-        }
         /* Center numeric values in table */
         .stDataFrame td {
             text-align: center !important;
@@ -82,12 +64,16 @@ st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
+# --- BIG HEADER FOR AFC RICHMAN ---
+st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
+st.markdown("<h2>QFG STATS</h2>", unsafe_allow_html=True)
+
 # --- Navigation Tabs for Sections ---
 tab1, tab2 = st.tabs(["QFG Stats", "Standings"])
 
 # --- QFG STATS TAB ---
 with tab1:
-    st.title("QFG STATS")
+    st.subheader("Player Stats")
     
     if not df.empty:
         # Clean Numeric Columns (Handle NaN Errors)
@@ -96,8 +82,7 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Center data and display DataFrame
-        st.subheader("Player Stats")
+        # Display DataFrame
         st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
         # Leaderboard Section
