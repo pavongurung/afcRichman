@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
 # --- Page Configurations ---
 st.set_page_config(
-    page_title="AFC Richman - QFG Stats",
+    page_title="AFC Richman",
     layout="wide"
 )
 
@@ -22,6 +23,12 @@ st.markdown("""
             text-align: center;
             margin-bottom: 5px;
         }
+        h2 {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+        }
         .stButton button {
             background-color: #e74c3c;
             color: white;
@@ -31,7 +38,7 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .stTable {
+        .fixtures-table {
             text-align: center;
             font-size: 18px;
         }
@@ -43,7 +50,7 @@ st.markdown("""
 st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
 
 # --- Navigation Tabs for Sections ---
-tab1, tab2, tab3 = st.tabs(["QFG Stats", "Standings", "Fixtures"])
+tab1, tab2, tab3 = st.tabs(["Player Stats", "Standings", "Fixtures"])
 
 # --- QFG STATS TAB ---
 with tab1:
@@ -62,7 +69,7 @@ with tab1:
             st.error(f"Error fetching data: {e}")
             return pd.DataFrame()
 
-    # --- Google Sheet CSV URL for QFG Stats ---
+    # --- Google Sheet CSV URL for Player Stats ---
     sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrjFU7jo5FNA7YbY8ME/export?format=csv&gid=421420318"
     df = fetch_data(sheet_url)
 
@@ -73,9 +80,6 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Fix Indexing (Start from 1)
-        df.index = range(1, len(df) + 1)
-
         # Display DataFrame
         st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
@@ -84,7 +88,6 @@ with tab1:
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
-            leaderboard.index = range(1, len(leaderboard) + 1)  # Fix index
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
 
@@ -155,15 +158,10 @@ with tab3:
         ("April 14, 2025", "East Clan", "9:30 PM"),
     ]
 
-    # Convert to DataFrame and Fix Indexing
+    # Convert to DataFrame and Filter
     df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
-    df_fixtures.index = range(1, len(df_fixtures) + 1)
-
-    # Display Table
-    st.table(df_fixtures.style.set_properties(**{"text-align": "center"}))
-
-# --- Manual Refresh Button ---
-if st.button("Refresh Data"):
-    with st.spinner('Refreshing data...'):
-        df = fetch_data(sheet_url)
-        st.success("Data refreshed successfully!")
+    df_fixtures["DateTime"] = pd.to_datetime(df_fixtures["Date"] + " " + df_fixtures["Time"])
+    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
+    
+    st.subheader("Upcoming Fixtures")
+    st.table(upcoming_fixtures[["Date", "Opponent", "Time"]].style.set_properties(**{"text-align": "center"}))
