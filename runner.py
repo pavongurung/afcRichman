@@ -153,3 +153,4 @@ if st.button("Refresh Data"):
     with st.spinner('Refreshing data...'):
         df = fetch_data(sheet_url)
         st.success("Data refreshed successfully!")
+ 
