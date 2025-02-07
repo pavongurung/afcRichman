@@ -26,7 +26,7 @@ sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrj
 # Fetch data
 df = fetch_data(sheet_url)
 
-# --- Custom CSS to Center Table Values ---
+# --- Custom CSS to Center Table Values & Fix Colors ---
 st.markdown("""
     <style>
         body {
@@ -70,6 +70,10 @@ st.markdown("""
         tr:nth-child(odd) {
             background-color: #222;
         }
+        /* Fix leaderboard & comparison table colors */
+        .leaderboard, .comparison {
+            background-color: transparent !important;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -102,7 +106,7 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
             leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
-            st.markdown(leaderboard.style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
+            st.markdown(leaderboard.style.set_properties(**{'text-align': 'center'}).set_table_attributes('class="leaderboard"').to_html(), unsafe_allow_html=True)
 
         # **Player Comparison Section**
         st.subheader("Compare Players")
@@ -110,7 +114,7 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.markdown(comparison[numeric_cols].style.set_properties(**{'text-align': 'center'}).to_html(), unsafe_allow_html=True)
+            st.markdown(comparison[numeric_cols].style.set_properties(**{'text-align': 'center'}).set_table_attributes('class="comparison"').to_html(), unsafe_allow_html=True)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
