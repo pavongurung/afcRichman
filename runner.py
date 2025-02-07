@@ -38,9 +38,13 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .fixtures-table {
+        /* Center text in tables */
+        table {
             text-align: center;
             font-size: 18px;
+        }
+        th, td {
+            text-align: center !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -74,13 +78,16 @@ with tab1:
     df = fetch_data(sheet_url)
 
     if not df.empty:
+        # Remove Index
+        df.reset_index(drop=True, inplace=True)
+
         # Clean Numeric Columns (Handle NaN Errors)
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Display DataFrame
+        # Display DataFrame with Center Alignment
         st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
         # Leaderboard Section
@@ -89,7 +96,7 @@ with tab1:
         if stat_category:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
+            st.dataframe(leaderboard.style.hide_index().set_properties(**{"text-align": "center"}))
 
         # Player Comparison Section
         st.subheader("Compare Players")
@@ -164,4 +171,4 @@ with tab3:
     upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
     
     st.subheader("Upcoming Fixtures")
-    st.table(upcoming_fixtures[["Date", "Opponent", "Time"]].style.set_properties(**{"text-align": "center"}))
+    st.table(upcoming_fixtures[["Date", "Opponent", "Time"]].style.hide_index().set_properties(**{"text-align": "center"}))
