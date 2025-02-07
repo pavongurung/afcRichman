@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
@@ -14,7 +13,7 @@ def fetch_data(sheet_url: str):
         df = pd.read_csv(sheet_url)
         if df.empty:
             st.warning("The fetched data is empty.")
-        # Remove empty rows
+        # Remove completely empty rows
         df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
@@ -41,11 +40,7 @@ st.markdown("""
             color: #e74c3c;
             text-align: center; 
         }
-        .stat {
-            font-size: 22px;
-            font-weight: bold;
-            color: #ffffff;
-        }
+        /* Style buttons */
         .stButton button {
             background-color: #e74c3c;
             color: white;
@@ -55,26 +50,7 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-        }
-        .nav-tabs button {
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            background-color: #e74c3c;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .nav-tabs button:hover {
-            background-color: #c0392b;
-        }
-        /* Center numeric values in table */
+        /* Center all table numbers */
         .stDataFrame td {
             text-align: center !important;
         }
@@ -90,25 +66,29 @@ with tab1:
     st.title("QFG STATS")
     
     if not df.empty:
-        # Clean Numeric Columns (Handle NaN Errors)
+        # Convert numeric columns to avoid errors
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Center data and display DataFrame
+        # **Fix Indexing** (Ensure Player Rankings Start from 1 Instead of 0)
+        df.index = range(1, len(df) + 1)
+
+        # **Player Stats Table**
         st.subheader("Player Stats")
         st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
-        # Leaderboard Section
+        # **Leaderboard Section**
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
+            leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
 
-        # Player Comparison Section
+        # **Player Comparison Section**
         st.subheader("Compare Players")
         players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
         if len(players) == 2:
