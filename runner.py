@@ -20,7 +20,7 @@ def fetch_data(sheet_url: str):
         return pd.DataFrame()
 
 # --- Google Sheet CSV URL for Player Stats ---
-sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv"
+sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrjFU7jo5FNA7YbY8ME/edit?gid=421420318#gid=421420318"
 
 # --- Google Sheet CSV URL for Team Data ---
 team_sheet_url = "https://docs.google.com/spreadsheets/d/1aox-kLc-IBX87_PQUN_E_mrWWzte8iwJMEDdQIFqYXk/export?format=csv&gid=1002186620"
