@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # --- Page Configurations ---
 st.set_page_config(
@@ -13,7 +14,7 @@ def fetch_data(sheet_url: str):
         df = pd.read_csv(sheet_url)
         if df.empty:
             st.warning("The fetched data is empty.")
-        # Remove completely empty rows
+        # Remove empty rows
         df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
@@ -40,6 +41,11 @@ st.markdown("""
             color: #e74c3c;
             text-align: center; 
         }
+        .stat {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
         .stButton button {
             background-color: #e74c3c;
             color: white;
@@ -49,32 +55,28 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
         }
-        th {
-            background-color: #e74c3c !important;
-            color: white !important;
-            font-size: 16px;
-            text-align: center;
-            padding: 8px;
+        .nav-tabs button {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #e74c3c;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
         }
-        td {
+        .nav-tabs button:hover {
+            background-color: #c0392b;
+        }
+        /* Center numeric values in table */
+        .stDataFrame td {
             text-align: center !important;
-            padding: 8px;
-            color: white !important;
-        }
-        tr:nth-child(even) {
-            background-color: #222 !important;
-        }
-        tr:nth-child(odd) {
-            background-color: #333 !important;
-        }
-        .highlight {
-            background-color: #c0392b !important;
-            color: white !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -86,61 +88,37 @@ tab1, tab2 = st.tabs(["QFG Stats", "Standings"])
 # --- QFG STATS TAB ---
 with tab1:
     st.title("QFG STATS")
-
+    
     if not df.empty:
-        # Convert numeric columns to avoid errors
+        # Clean Numeric Columns (Handle NaN Errors)
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # **Fix Indexing** (Ensure Player Rankings Start from 1 Instead of 0)
-        df.index = range(1, len(df) + 1)
-
-        # Custom Table Styling for Player Stats
+        # Center data and display DataFrame
         st.subheader("Player Stats")
-        st.markdown(df.style.set_properties(
-            **{'text-align': 'center'}
-        ).set_table_styles([
-            {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
-            {'selector': 'td', 'props': 'text-align: center; color: white;'},
-            {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
-            {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
-        ]).to_html(), unsafe_allow_html=True)
+        st.dataframe(df.style.set_properties(**{"text-align": "center"}), use_container_width=True, height=600)
 
-        # **Leaderboard Section**
+        # Leaderboard Section
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index()
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
-            st.markdown(leaderboard.style.set_properties(
-                **{'text-align': 'center'}
-            ).set_table_styles([
-                {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
-                {'selector': 'td', 'props': 'text-align: center; color: white;'},
-                {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
-                {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
-            ]).to_html(), unsafe_allow_html=True)
+            st.dataframe(leaderboard.style.set_properties(**{"text-align": "center"}))
 
-        # **Player Comparison Section**
+        # Player Comparison Section
         st.subheader("Compare Players")
         players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.markdown(comparison[numeric_cols].style.set_properties(
-                **{'text-align': 'center'}
-            ).set_table_styles([
-                {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
-                {'selector': 'td', 'props': 'text-align: center; color: white;'},
-                {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
-                {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
-            ]).to_html(), unsafe_allow_html=True)
+            st.dataframe(comparison[numeric_cols].style.set_properties(**{"text-align": "center"}))
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
-# --- STANDINGS TAB --- 
+# --- STANDINGS TAB ---
 with tab2:
     st.title("League Standings")
 
