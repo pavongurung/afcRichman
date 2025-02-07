@@ -40,11 +40,6 @@ st.markdown("""
             color: #e74c3c;
             text-align: center; 
         }
-        .stat {
-            font-size: 22px;
-            font-weight: bold;
-            color: #ffffff;
-        }
         .stButton button {
             background-color: #e74c3c;
             color: white;
@@ -52,25 +47,6 @@ st.markdown("""
             border: none;
         }
         .stButton button:hover {
-            background-color: #c0392b;
-        }
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-        }
-        .nav-tabs button {
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            background-color: #e74c3c;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .nav-tabs button:hover {
             background-color: #c0392b;
         }
         /* Table Styling */
@@ -118,7 +94,10 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
             df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-        # Custom Table Styling to Fix Colors
+        # **Fix Indexing** (Ensure Player Rankings Start from 1 Instead of 0)
+        df.index = range(1, len(df) + 1)
+
+        # Custom Table Styling for Player Stats
         st.subheader("Player Stats")
         st.markdown(df.style.set_properties(
             **{'text-align': 'center'}
@@ -129,12 +108,11 @@ with tab1:
             {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
         ]).to_html(), unsafe_allow_html=True)
 
-        # Leaderboard Section
+        # **Leaderboard Section**
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
-            leaderboard.index += 1  # Start numbering from 1
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index()
             st.write(f"Top 3 Players for {stat_category}:")
             st.markdown(leaderboard.style.set_properties(
                 **{'text-align': 'center'}
@@ -145,7 +123,7 @@ with tab1:
                 {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
             ]).to_html(), unsafe_allow_html=True)
 
-        # Player Comparison Section
+        # **Player Comparison Section**
         st.subheader("Compare Players")
         players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
         if len(players) == 2:
