@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import pytz
+import time
 
 # --- Page Configurations ---
 st.set_page_config(
@@ -11,7 +12,6 @@ st.set_page_config(
 
 # --- Set EST Timezone ---
 est = pytz.timezone("America/New_York")
-current_time_est = datetime.datetime.now(est)
 
 # --- Custom CSS for Minimalist Styling ---
 st.markdown("""
@@ -59,10 +59,6 @@ st.markdown("<h2>Upcoming Fixtures</h2>", unsafe_allow_html=True)
 
 # --- Fixtures Data ---
 fixtures = [
-    ("February 3, 2025", "Trakas HDSPM", "9:00 PM"),
-    ("February 3, 2025", "Titans Inferno", "9:30 PM"),
-    ("February 6, 2025", "RTG Academy", "8:30 PM"),
-    ("February 6, 2025", "Reggae Boyzzz", "9:00 PM"),
     ("February 10, 2025", "Real Smokey", "9:00 PM"),
     ("February 10, 2025", "Purple Hollow", "9:30 PM"),
     ("March 3, 2025", "FC Wockhardt", "9:00 PM"),
@@ -71,19 +67,12 @@ fixtures = [
     ("March 6, 2025", "Trakas HDSPM", "9:00 PM"),
     ("March 17, 2025", "Titans Inferno", "9:00 PM"),
     ("March 17, 2025", "RTG Academy", "9:30 PM"),
-    ("March 31, 2025", "NB Rovers", "9:30 PM"),
-    ("April 3, 2025", "Out of Shape FC", "8:30 PM"),
-    ("April 3, 2025", "Kings TM", "9:00 PM"),
-    ("April 7, 2025", "Raptors FC", "9:00 PM"),
-    ("April 7, 2025", "Jogo Bonito", "9:30 PM"),
-    ("April 10, 2025", "Girth City", "8:30 PM"),
-    ("April 10, 2025", "FC Wockhardt", "9:00 PM"),
-    ("April 14, 2025", "FC Dragonfire", "9:00 PM"),
-    ("April 14, 2025", "East Clan", "9:30 PM"),
 ]
 
 # --- Find Next 2 Matches ---
 next_matches = []
+current_time_est = datetime.datetime.now(est)
+
 for match_date, opponent, time_str in fixtures:
     match_datetime = datetime.datetime.strptime(f"{match_date} {time_str}", "%B %d, %Y %I:%M %p")
     match_datetime = est.localize(match_datetime)  # Convert to EST timezone
@@ -93,34 +82,29 @@ for match_date, opponent, time_str in fixtures:
         if len(next_matches) == 2:
             break
 
-# --- Display Next Matches & Countdowns ---
+# --- Display Next Matches & LIVE Countdown ---
 if next_matches:
     for i, (match_date, opponent, match_datetime) in enumerate(next_matches):
         st.subheader(f"Upcoming Match {i+1}: {opponent} on {match_date} at {match_datetime.strftime('%I:%M %p EST')}")
+        countdown_placeholder = st.empty()
 
-        time_remaining = match_datetime - datetime.datetime.now(est)
-        days, seconds = divmod(time_remaining.total_seconds(), 86400)
-        hours, seconds = divmod(seconds, 3600)
-        minutes, seconds = divmod(seconds, 60)
+        while True:
+            now = datetime.datetime.now(est)
+            time_remaining = match_datetime - now
+            days, seconds = divmod(time_remaining.total_seconds(), 86400)
+            hours, seconds = divmod(seconds, 3600)
+            minutes, seconds = divmod(seconds, 60)
 
-        st.markdown(f"""
-        <div class="countdown-box">
-            <div class="countdown-item">{int(days)}<br><span style="font-size: 18px;">DAYS</span></div>
-            <div class="countdown-item">{int(hours)}<br><span style="font-size: 18px;">HOURS</span></div>
-            <div class="countdown-item">{int(minutes)}<br><span style="font-size: 18px;">MINS</span></div>
-            <div class="countdown-item">{int(seconds)}<br><span style="font-size: 18px;">SECS</span></div>
-        </div>
-        """, unsafe_allow_html=True)
+            countdown_html = f"""
+            <div class="countdown-box">
+                <div class="countdown-item">{int(days)}<br><span style="font-size: 18px;">DAYS</span></div>
+                <div class="countdown-item">{int(hours)}<br><span style="font-size: 18px;">HOURS</span></div>
+                <div class="countdown-item">{int(minutes)}<br><span style="font-size: 18px;">MINS</span></div>
+                <div class="countdown-item">{int(seconds)}<br><span style="font-size: 18px;">SECS</span></div>
+            </div>
+            """
+            countdown_placeholder.markdown(countdown_html, unsafe_allow_html=True)
+            time.sleep(1)
 
 else:
     st.subheader("No upcoming matches scheduled.")
-
-# --- Auto Refresh Every 60s for Live Countdown ---
-st.markdown("""
-    <script>
-        function autoRefresh() {
-            setTimeout(() => { location.reload(); }, 60000);
-        }
-        autoRefresh();
-    </script>
-""", unsafe_allow_html=True)
