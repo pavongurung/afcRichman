@@ -53,62 +53,94 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .section-title {
-            font-size: 30px;
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .nav-tabs button {
+            font-size: 18px;
             font-weight: bold;
-            color: #ffffff;
-            text-align: center;
-            margin-top: 30px;
-            margin-bottom: 10px;
+            color: white;
+            background-color: #e74c3c;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .nav-tabs button:hover {
+            background-color: #c0392b;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# --- App Layout ---
-st.title("QFG STATS")
+# --- Navigation Tabs for Sections ---
+st.markdown('<div class="nav-tabs">', unsafe_allow_html=True)
 
-# --- Player Stats Section ---
-st.markdown('<div class="section-title">Player Stats</div>', unsafe_allow_html=True)
+tab1, tab2 = st.tabs(["QFG Stats", "Standings"])
 
-if not df.empty:
-    # Clean Numeric Columns (Handle NaN Errors)
-    numeric_cols = df.select_dtypes(include=["number"]).columns
-    for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
-        df[col].fillna(0, inplace=True)  # Replace NaN with 0
+# --- QFG STATS TAB ---
+with tab1:
+    st.title("QFG STATS")
+    
+    if not df.empty:
+        # Clean Numeric Columns (Handle NaN Errors)
+        numeric_cols = df.select_dtypes(include=["number"]).columns
+        for col in numeric_cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
+            df[col].fillna(0, inplace=True)  # Replace NaN with 0
 
-    # Display DataFrame
-    st.dataframe(df.reset_index(drop=True), use_container_width=True, height=600, hide_index=True)
+        # Display DataFrame
+        st.subheader("Player Stats")
+        st.dataframe(df.reset_index(drop=True), use_container_width=True, height=600, hide_index=True)
 
-    # Leaderboard Section
-    st.markdown('<div class="section-title">Top Performers</div>', unsafe_allow_html=True)
-    stat_category = st.selectbox("Select Stat Category", numeric_cols)
-    if stat_category:
-        leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
-        st.write(f"Top 3 Players for {stat_category}:")
-        st.dataframe(leaderboard, hide_index=True)
+        # Leaderboard Section
+        st.subheader("Top Performers")
+        stat_category = st.selectbox("Select Stat Category", numeric_cols)
+        if stat_category:
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            st.write(f"Top 3 Players for {stat_category}:")
+            st.dataframe(leaderboard, hide_index=True)
 
-    # Player Comparison Section
-    st.markdown('<div class="section-title">Compare Players</div>', unsafe_allow_html=True)
-    players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
-    if len(players) == 2:
-        comparison = df[df["Player"].isin(players)].set_index("Player")
-        st.write(f"Comparison of {players[0]} vs {players[1]}:")
-        st.dataframe(comparison[numeric_cols], hide_index=False)
-    elif len(players) > 2:
-        st.warning("Please select only two players.")
+        # Player Comparison Section
+        st.subheader("Compare Players")
+        players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
+        if len(players) == 2:
+            comparison = df[df["Player"].isin(players)].set_index("Player")
+            st.write(f"Comparison of {players[0]} vs {players[1]}:")
+            st.dataframe(comparison[numeric_cols], hide_index=False)
+        elif len(players) > 2:
+            st.warning("Please select only two players.")
 
-# --- League Standings Section ---
-st.markdown('<div class="section-title">League Standings</div>', unsafe_allow_html=True)
+# --- STANDINGS TAB ---
+with tab2:
+    st.title("League Standings")
 
-# LeagueRepublic Standings URL
-league_url = "https://questforglory.leaguerepublic.com/standingsForDate/43160383/2/-1/-1.html"
+    st.markdown("""
+    <p style="text-align: center; font-size: 18px; color: white;">
+        Click the button below to view the latest standings.
+    </p>
+    """, unsafe_allow_html=True)
 
-# Embed the Standings Page in Streamlit
-st.components.v1.html(f'''
-    <iframe src="{league_url}" width="100%" height="800px" style="border:none;"></iframe>
-''', height=800)
+    # Button to Open Standings in a New Tab
+    st.markdown("""
+    <div style="text-align: center;">
+        <a href="https://questforglory.leaguerepublic.com/standingsForDate/43160383/2/-1/-1.html" target="_blank">
+            <button style="
+                font-size: 20px;
+                font-weight: bold;
+                color: white;
+                background-color: #e74c3c;
+                padding: 10px 20px;
+                border: none;
+                cursor: pointer;
+                transition: 0.3s;
+            ">View Standings</button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- Manual Refresh Button ---
 if st.button("Refresh Data"):
