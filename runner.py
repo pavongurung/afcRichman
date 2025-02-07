@@ -37,7 +37,7 @@ st.markdown("""
             font-size: 40px;
             font-weight: bold;
             color: #e74c3c;
-            text-align: center;
+            text-align: center; 
         }
         .stat {
             font-size: 22px;
