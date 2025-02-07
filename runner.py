@@ -50,10 +50,15 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        /* Center text and numbers in tables */
+        /* Center all table headers and data cells */
         .dataframe th, .dataframe td {
             text-align: center !important;
             vertical-align: middle !important;
+        }
+        /* Center tables horizontally */
+        .dataframe {
+            margin-left: auto !important;
+            margin-right: auto !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -76,13 +81,10 @@ with tab1:
         # Fix Indexing (Ensure Player Rankings Start from 1)
         df.index = range(1, len(df) + 1)
 
-        # **Player Stats Table with Centered Numbers**
+        # **Player Stats Table (Centered via CSS)**
         st.subheader("Player Stats")
         st.dataframe(
-            df.style.set_table_styles(
-                [{'selector': 'th', 'props': [('text-align', 'center')]}] + 
-                [{'selector': 'td', 'props': [('text-align', 'center')]}]
-            ).hide(axis="index"),  # Hides the default index
+            df,
             use_container_width=True, 
             height=600
         )
@@ -94,12 +96,7 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
             leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
-            st.dataframe(
-                leaderboard.style.set_table_styles(
-                    [{'selector': 'th', 'props': [('text-align', 'center')]}] +
-                    [{'selector': 'td', 'props': [('text-align', 'center')]}]
-                ).hide(axis="index")  # Hides the index
-            )
+            st.dataframe(leaderboard)
 
         # **Player Comparison Section**
         st.subheader("Compare Players")
@@ -107,12 +104,7 @@ with tab1:
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
-            st.dataframe(
-                comparison[numeric_cols].style.set_table_styles(
-                    [{'selector': 'th', 'props': [('text-align', 'center')]}] +
-                    [{'selector': 'td', 'props': [('text-align', 'center')]}]
-                ).hide(axis="index")  # Hides the index
-            )
+            st.dataframe(comparison[numeric_cols])
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
