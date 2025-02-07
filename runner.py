@@ -73,7 +73,7 @@ st.markdown("""
         .nav-tabs button:hover {
             background-color: #c0392b;
         }
-        /* Center Table Content */
+        /* Table Styling */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -88,12 +88,17 @@ st.markdown("""
         td {
             text-align: center !important;
             padding: 8px;
+            color: white !important;
         }
         tr:nth-child(even) {
             background-color: #222 !important;
         }
         tr:nth-child(odd) {
             background-color: #333 !important;
+        }
+        .highlight {
+            background-color: #c0392b !important;
+            color: white !important;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -119,7 +124,7 @@ with tab1:
             **{'text-align': 'center'}
         ).set_table_styles([
             {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
-            {'selector': 'td', 'props': 'text-align: center;'},
+            {'selector': 'td', 'props': 'text-align: center; color: white;'},
             {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
             {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
         ]).to_html(), unsafe_allow_html=True)
@@ -128,13 +133,14 @@ with tab1:
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].reset_index(drop=True)
+            leaderboard.index += 1  # Start numbering from 1
             st.write(f"Top 3 Players for {stat_category}:")
             st.markdown(leaderboard.style.set_properties(
                 **{'text-align': 'center'}
             ).set_table_styles([
                 {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
-                {'selector': 'td', 'props': 'text-align: center;'},
+                {'selector': 'td', 'props': 'text-align: center; color: white;'},
                 {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
                 {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
             ]).to_html(), unsafe_allow_html=True)
@@ -149,7 +155,7 @@ with tab1:
                 **{'text-align': 'center'}
             ).set_table_styles([
                 {'selector': 'th', 'props': 'background-color: #e74c3c; color: white; font-size: 16px; text-align: center;'},
-                {'selector': 'td', 'props': 'text-align: center;'},
+                {'selector': 'td', 'props': 'text-align: center; color: white;'},
                 {'selector': 'tr:nth-child(even)', 'props': 'background-color: #222 !important;'},
                 {'selector': 'tr:nth-child(odd)', 'props': 'background-color: #333 !important;'}
             ]).to_html(), unsafe_allow_html=True)
