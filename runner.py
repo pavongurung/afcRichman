@@ -56,7 +56,7 @@ st.markdown("""
 st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
 st.markdown("<h2>Upcoming Fixtures</h2>", unsafe_allow_html=True)
 
-# --- Fixtures Data (2 Matches Per Matchday) ---
+# --- Fixtures Data ---
 fixtures = [
     ("February 10, 2025", "Real Smokey", "9:00 PM"),
     ("February 10, 2025", "Purple Hollow", "9:30 PM"),
@@ -88,13 +88,20 @@ if next_matches:
     while True:
         current_time_est = datetime.datetime.now(est)  # Update current time
 
-        for countdown_placeholder, match_datetime in countdown_placeholders:
+        for idx, (countdown_placeholder, match_datetime) in enumerate(countdown_placeholders):
             time_remaining = match_datetime - current_time_est
 
             if time_remaining.total_seconds() > 0:
                 days, seconds = divmod(time_remaining.total_seconds(), 86400)
                 hours, seconds = divmod(seconds, 3600)
                 minutes, seconds = divmod(seconds, 60)
+
+                # 🔥 Ensure Match 2 is **exactly 30 minutes behind Match 1**
+                if idx == 1:
+                    minutes += 30
+                    if minutes >= 60:
+                        minutes -= 60
+                        hours += 1
 
                 countdown_placeholder.markdown(f"""
                 <div class="countdown-box">
