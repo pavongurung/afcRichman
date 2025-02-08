@@ -52,26 +52,26 @@ st.markdown("<h1>AFC RICHMAN</h1>", unsafe_allow_html=True)
 # --- Navigation Tabs for Sections ---
 tab1, tab2, tab3 = st.tabs(["Player Stats", "Standings", "Fixtures"])
 
+# --- Fetch Data from Google Sheet ---
+def fetch_data(sheet_url: str):
+    try:
+        st.cache_data.clear()  # Ensure cache is cleared before fetching
+        df = pd.read_csv(sheet_url)
+        if df.empty:
+            st.warning("The fetched data is empty.")
+        df.dropna(how="all", inplace=True)  # Remove empty rows
+        return df
+    except Exception as e:
+        st.error(f"Error fetching data: {e}")
+        return pd.DataFrame()
+
+# --- Google Sheet CSV URL for Player Stats ---
+sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrjFU7jo5FNA7YbY8ME/export?format=csv&gid=421420318"
+df = fetch_data(sheet_url)
+
 # --- PLAYER STATS TAB ---
 with tab1:
     st.subheader("Player Stats")
-
-    # --- Fetch Data from Google Sheet ---
-    @st.cache_data
-    def fetch_data(sheet_url: str):
-        try:
-            df = pd.read_csv(sheet_url)
-            if df.empty:
-                st.warning("The fetched data is empty.")
-            df.dropna(how="all", inplace=True)  # Remove empty rows
-            return df
-        except Exception as e:
-            st.error(f"Error fetching data: {e}")
-            return pd.DataFrame()
-
-    # --- Google Sheet CSV URL for Player Stats ---
-    sheet_url = "https://docs.google.com/spreadsheets/d/1LayywggB9GCx1HwluNxc88_jLrjFU7jo5FNA7YbY8ME/export?format=csv&gid=421420318"
-    df = fetch_data(sheet_url)
 
     if not df.empty:
         # Clean Numeric Columns (Handle NaN Errors)
@@ -176,3 +176,10 @@ with tab3:
         .style.hide(axis="index")
         .set_properties(**{"text-align": "center"})
     )
+
+# --- Manual Refresh Button ---
+if st.button("Refresh Data"):
+    with st.spinner('Refreshing data...'):
+        st.cache_data.clear()  # Clears old cache
+        df = fetch_data(sheet_url)
+        st.success("Data refreshed successfully!")
