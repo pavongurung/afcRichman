@@ -80,9 +80,9 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
             df[col] = df[col].round(2)  # Round to 2 decimal places
 
-        # Remove the Index Column and Center Text
+        # Remove Index and Center Text
         st.dataframe(
-            df.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"}),
+            df.set_index("Player").style.format(precision=2).set_properties(**{"text-align": "center"}),
             use_container_width=True, height=600
         )
 
@@ -90,10 +90,10 @@ with tab1:
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].set_index("Player")
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"})
+                leaderboard.style.format(precision=2).set_properties(**{"text-align": "center"})
             )
 
         # Player Comparison Section
@@ -168,13 +168,11 @@ with tab3:
     # Convert to DataFrame and Filter
     df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
     df_fixtures["DateTime"] = pd.to_datetime(df_fixtures["Date"] + " " + df_fixtures["Time"])
-    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
-    
+    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()].drop(columns=["DateTime"]).set_index("Date")
+
     st.subheader("Upcoming Fixtures")
     st.table(
-        upcoming_fixtures[["Date", "Opponent", "Time"]]
-        .style.hide(axis="index")
-        .set_properties(**{"text-align": "center"})
+        upcoming_fixtures.style.set_properties(**{"text-align": "center"})
     )
 
 # --- Manual Refresh Button ---
