@@ -68,6 +68,12 @@ df = fetch_data(sheet_url)
 # --- PLAYER STATS TAB ---
 with tab1:
     st.subheader("Player Stats")
+    
+    # --- Add Caption (Q4G League Disclaimer) ---
+    st.markdown(
+        "<p style='font-size:14px; color:gray; font-style:italic;'>⚠️ These stats are from Q4G League matches only.</p>",
+        unsafe_allow_html=True
+    )
 
     if not df.empty:
         # Clean Numeric Columns (Handle NaN Errors)
