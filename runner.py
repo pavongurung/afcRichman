@@ -82,8 +82,8 @@ with tab1:
 
         # Remove the Index Column and Center Text
         st.dataframe(
-            df.reset_index(drop=True)  # Removes the numbered index
-            .style.format(precision=2)
+            df.style.hide(axis="index")  # Remove numbered index
+            .format(precision=2)
             .set_properties(**{"text-align": "center"}),
             use_container_width=True, height=600
         )
@@ -92,20 +92,24 @@ with tab1:
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(5, stat_category)[["Player", stat_category]].reset_index(drop=True)  # Removes index
+            leaderboard = df.nlargest(5, stat_category)[["Player", stat_category]]
             st.write(f"Top 5 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.format(precision=2).set_properties(**{"text-align": "center"})
+                leaderboard.style.hide(axis="index")  # Remove numbered index
+                .format(precision=2)
+                .set_properties(**{"text-align": "center"})
             )
 
         # Player Comparison Section
         st.subheader("Compare Players")
         players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
         if len(players) == 2:
-            comparison = df[df["Player"].isin(players)].set_index("Player").reset_index()  # Removes index
+            comparison = df[df["Player"].isin(players)][["Player"] + list(numeric_cols)]
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
             st.dataframe(
-                comparison[numeric_cols].reset_index(drop=True).style.format(precision=2).set_properties(**{"text-align": "center"})
+                comparison.style.hide(axis="index")  # Remove numbered index
+                .format(precision=2)
+                .set_properties(**{"text-align": "center"})
             )
         elif len(players) > 2:
             st.warning("Please select only two players.")
@@ -175,8 +179,8 @@ with tab3:
     st.subheader("Upcoming Fixtures")
     st.table(
         upcoming_fixtures[["Date", "Opponent", "Time"]]
-        .reset_index(drop=True)  # Removes index
-        .style.set_properties(**{"text-align": "center"})
+        .style.hide(axis="index")  # Remove numbered index
+        .set_properties(**{"text-align": "center"})
     )
 
 # --- Manual Refresh Button ---
