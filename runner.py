@@ -77,8 +77,8 @@ with tab1:
         # Clean Numeric Columns (Handle NaN Errors)
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, set invalid values to NaN
-            df[col].fillna(0, inplace=True)  # Replace NaN with 0
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
+            df[col] = df[col].apply(lambda x: round(x, 2))  # Round to 2 decimal places
 
         # Remove the Index Column and Center Text
         st.dataframe(
