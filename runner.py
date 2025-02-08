@@ -38,6 +38,10 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
+        .fixtures-table {
+            text-align: center;
+            font-size: 18px;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -69,34 +73,16 @@ df = fetch_data(sheet_url)
 with tab1:
     st.subheader("Player Stats")
 
-    # --- Add Caption (Q4G League Disclaimer) ---
-    st.markdown(
-        "<p style='font-size:14px; color:gray; font-style:italic;'>⚠️ These stats are from Q4G League matches only.</p>",
-        unsafe_allow_html=True
-    )
-
     if not df.empty:
-        # Convert numeric columns properly
+        # Clean Numeric Columns (Handle NaN Errors)
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
+            df[col] = df[col].round(2)  # Round to 2 decimal places
 
-        # Define which columns to sum and which to average
-        sum_columns = ["MOTM", "Goals", "Assists", "Pos. Won", "Pos. Lost", "Clean Sheet", "Yellow", "Red", "Saves", "PK Save"]
-        avg_columns = ["Avg Rating", "Shot Acc (%) PG", "Pass Acc (%) PG", "Dribble Succ Rate (%) PG", "Tackle Succ Rate (%) PG"]
-
-        # Sum cumulative stats
-        df[sum_columns] = df[sum_columns].astype(float).sum(axis=0)
-
-        # Average percentage-based stats
-        df[avg_columns] = df[avg_columns].astype(float).mean(axis=0)
-
-        # Round for cleaner formatting
-        df = df.round(1)
-
-        # Remove Index and Display Player Stats Table
+        # Remove the Index Column and Center Text
         st.dataframe(
-            df.set_index("Player").style.format(precision=1),
+            df.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"}),
             use_container_width=True, height=600
         )
 
@@ -104,10 +90,10 @@ with tab1:
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].set_index("Player")
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.format(precision=1)
+                leaderboard.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"})
             )
 
         # Player Comparison Section
@@ -117,7 +103,7 @@ with tab1:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
             st.dataframe(
-                comparison[numeric_cols].style.format(precision=1)
+                comparison[numeric_cols].style.format(precision=2).set_properties(**{"text-align": "center"})
             )
         elif len(players) > 2:
             st.warning("Please select only two players.")
@@ -132,7 +118,7 @@ with tab2:
     </p>
     """, unsafe_allow_html=True)
 
-    # Button to Open Standings in a New Tab 
+    # Button to Open Standings in a New Tab
     st.markdown("""
     <div style="text-align: center;">
         <a href="https://questforglory.leaguerepublic.com/standingsForDate/43160383/2/-1/-1.html" target="_blank">
@@ -182,11 +168,13 @@ with tab3:
     # Convert to DataFrame and Filter
     df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
     df_fixtures["DateTime"] = pd.to_datetime(df_fixtures["Date"] + " " + df_fixtures["Time"])
-    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()].drop(columns=["DateTime"]).set_index("Date")
-
+    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
+    
     st.subheader("Upcoming Fixtures")
     st.table(
-        upcoming_fixtures.style
+        upcoming_fixtures[["Date", "Opponent", "Time"]]
+        .style.hide(axis="index")
+        .set_properties(**{"text-align": "center"})
     )
 
 # --- Manual Refresh Button ---
