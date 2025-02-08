@@ -132,7 +132,7 @@ with tab2:
     </p>
     """, unsafe_allow_html=True)
 
-    # Button to Open Standings in a New Tab
+    # Button to Open Standings in a New Tab 
     st.markdown("""
     <div style="text-align: center;">
         <a href="https://questforglory.leaguerepublic.com/standingsForDate/43160383/2/-1/-1.html" target="_blank">
