@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 from datetime import datetime
 
 # --- Page Configurations ---
@@ -22,32 +21,22 @@ st.markdown("""
             font-weight: bold;
             color: #e74c3c;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
         h2 {
             font-size: 30px;
             font-weight: bold;
             color: #ffffff;
             text-align: center;
-            margin-bottom: 10px;
         }
         .stButton button {
             background-color: #e74c3c;
             color: white;
             font-size: 16px;
             border: none;
-            padding: 8px 15px;
         }
         .stButton button:hover {
             background-color: #c0392b;
-        }
-        .stDataFrame {
-            background-color: #1e1e1e;
-            border-radius: 10px;
-            padding: 10px;
-        }
-        .data-table th, .data-table td {
-            text-align: center;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -87,46 +76,31 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
             df[col] = df[col].round(2)  # Round to 2 decimal places
 
-        # Sorting and Searching Feature
-        search_query = st.text_input("Search for a player", "")
-        if search_query:
-            df = df[df["Player"].str.contains(search_query, case=False, na=False)]
-
-        # Display DataFrame (sortable, styled)
+        # Remove Index and Display Player Stats Table
         st.dataframe(
-            df.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"}),
+            df.set_index("Player").style.format(precision=2),
             use_container_width=True, height=600
         )
 
-        # --- Leaderboard Section ---
+        # Leaderboard Section
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(5, stat_category)[["Player", stat_category]]  # Show top 5 players
-            st.write(f"Top 5 Players for {stat_category}:")
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].set_index("Player")
+            st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"})
+                leaderboard.style.format(precision=2)
             )
 
-            # --- Bar Chart for Top Performers ---
-            fig = px.bar(leaderboard, x="Player", y=stat_category, title=f"Top 5 Players - {stat_category}",
-                         color="Player", text_auto=True)
-            st.plotly_chart(fig, use_container_width=True)
-
-        # --- Player Comparison Section ---
+        # Player Comparison Section
         st.subheader("Compare Players")
         players = st.multiselect("Select Two Players to Compare", df["Player"].unique(), max_selections=2)
         if len(players) == 2:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
             st.dataframe(
-                comparison[numeric_cols].style.format(precision=2).set_properties(**{"text-align": "center"})
+                comparison[numeric_cols].style.format(precision=2)
             )
-
-            # --- Line Graph to Compare Performance ---
-            fig2 = px.line(comparison.T, title=f"Performance Comparison: {players[0]} vs {players[1]}",
-                           markers=True)
-            st.plotly_chart(fig2, use_container_width=True)
         elif len(players) > 2:
             st.warning("Please select only two players.")
 
@@ -162,26 +136,44 @@ with tab2:
 with tab3:
     st.title("Fixtures")
 
-    # Convert to DataFrame and Filter
-    df_fixtures = pd.DataFrame([
+    # --- Fixture Data ---
+    fixtures = [
         ("February 3, 2025", "Trakas HDSPM", "9:00 PM"),
+        ("February 3, 2025", "Titans Inferno", "9:30 PM"),
+        ("February 6, 2025", "RTG Academy", "8:30 PM"),
+        ("February 6, 2025", "Reggae Boyzzz", "9:00 PM"),
+        ("February 10, 2025", "Real Smokey", "9:00 PM"),
+        ("February 10, 2025", "Purple Hollow", "9:30 PM"),
         ("March 3, 2025", "FC Wockhardt", "9:00 PM"),
+        ("March 3, 2025", "FC Dragonfire", "9:30 PM"),
+        ("March 6, 2025", "East Clan", "8:30 PM"),
+        ("March 6, 2025", "Trakas HDSPM", "9:00 PM"),
+        ("March 17, 2025", "Titans Inferno", "9:00 PM"),
+        ("March 17, 2025", "RTG Academy", "9:30 PM"),
+        ("March 31, 2025", "NB Rovers", "9:30 PM"),
+        ("April 3, 2025", "Out of Shape FC", "8:30 PM"),
         ("April 3, 2025", "Kings TM", "9:00 PM"),
-    ], columns=["Date", "Opponent", "Time"])
+        ("April 7, 2025", "Raptors FC", "9:00 PM"),
+        ("April 7, 2025", "Jogo Bonito", "9:30 PM"),
+        ("April 10, 2025", "Girth City", "8:30 PM"),
+        ("April 10, 2025", "FC Wockhardt", "9:00 PM"),
+        ("April 14, 2025", "FC Dragonfire", "9:00 PM"),
+        ("April 14, 2025", "East Clan", "9:30 PM"),
+    ]
 
+    # Convert to DataFrame and Filter
+    df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
     df_fixtures["DateTime"] = pd.to_datetime(df_fixtures["Date"] + " " + df_fixtures["Time"])
-    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
-    
+    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()].drop(columns=["DateTime"]).set_index("Date")
+
     st.subheader("Upcoming Fixtures")
     st.table(
-        upcoming_fixtures[["Date", "Opponent", "Time"]]
-        .style.hide(axis="index")
-        .set_properties(**{"text-align": "center"})
+        upcoming_fixtures.style
     )
 
-# --- Refresh Button ---
+# --- Manual Refresh Button ---
 if st.button("Refresh Data"):
     with st.spinner('Refreshing data...'):
-        st.cache_data.clear()
+        st.cache_data.clear()  # Clears old cache
         df = fetch_data(sheet_url)
         st.success("Data refreshed successfully!")
