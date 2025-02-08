@@ -38,10 +38,6 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .fixtures-table {
-            text-align: center;
-            font-size: 18px;
-        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -80,9 +76,9 @@ with tab1:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
             df[col] = df[col].round(2)  # Round to 2 decimal places
 
-        # Remove Index and Center Text
+        # Remove Index and Display Player Stats Table
         st.dataframe(
-            df.set_index("Player").style.format(precision=2).set_properties(**{"text-align": "center"}),
+            df.set_index("Player").style.format(precision=2),
             use_container_width=True, height=600
         )
 
@@ -93,7 +89,7 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].set_index("Player")
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.format(precision=2).set_properties(**{"text-align": "center"})
+                leaderboard.style.format(precision=2)
             )
 
         # Player Comparison Section
@@ -103,7 +99,7 @@ with tab1:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
             st.dataframe(
-                comparison[numeric_cols].style.format(precision=2).set_properties(**{"text-align": "center"})
+                comparison[numeric_cols].style.format(precision=2)
             )
         elif len(players) > 2:
             st.warning("Please select only two players.")
@@ -172,7 +168,7 @@ with tab3:
 
     st.subheader("Upcoming Fixtures")
     st.table(
-        upcoming_fixtures.style.set_properties(**{"text-align": "center"})
+        upcoming_fixtures.style
     )
 
 # --- Manual Refresh Button ---
