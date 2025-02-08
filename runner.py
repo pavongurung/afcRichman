@@ -62,11 +62,9 @@ tab1, tab2, tab3 = st.tabs(["Player Stats", "Standings", "Fixtures"])
 # --- Fetch Data from Google Sheet ---
 def fetch_data(sheet_url: str):
     try:
-        st.cache_data.clear()  # Ensure cache is cleared before fetching
+        st.cache_data.clear()
         df = pd.read_csv(sheet_url)
-        if df.empty:
-            st.warning("The fetched data is empty.")
-        df.dropna(how="all", inplace=True)  # Remove empty rows
+        df.dropna(how="all", inplace=True)
         return df
     except Exception as e:
         st.error(f"Error fetching data: {e}")
@@ -84,8 +82,8 @@ with tab1:
         # Clean Numeric Columns (Handle NaN Errors)
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
-            df[col] = df[col].round(2)  # Round to 2 decimal places
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+            df[col] = df[col].round(2)
 
         # Sorting and Searching Feature
         search_query = st.text_input("Search for a player", "")
@@ -95,7 +93,7 @@ with tab1:
         # Display DataFrame (sortable, styled)
         st.dataframe(
             df.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"}),
-            use_container_width=True, height=600
+            use_container_width=True, height=500
         )
 
         # --- Leaderboard Section ---
@@ -108,10 +106,16 @@ with tab1:
                 leaderboard.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"})
             )
 
-            # --- Bar Chart for Top Performers ---
-            fig = px.bar(leaderboard, x="Player", y=stat_category, title=f"Top 5 Players - {stat_category}",
-                         color="Player", text_auto=True)
-            st.plotly_chart(fig, use_container_width=True)
+            # --- Show Graph Toggle ---
+            show_graph = st.checkbox("Show Graph", value=False)
+            if show_graph:
+                # --- Bar Chart for Top Performers (Centered, 50% width) ---
+                fig = px.bar(
+                    leaderboard, x="Player", y=stat_category, 
+                    title=f"Top 5 Players - {stat_category}", color="Player", text_auto=True
+                )
+                fig.update_layout(width=800, margin=dict(l=50, r=50, t=50, b=50))
+                st.plotly_chart(fig, use_container_width=False)  # Center graph
 
         # --- Player Comparison Section ---
         st.subheader("Compare Players")
@@ -124,16 +128,16 @@ with tab1:
             )
 
             # --- Line Graph to Compare Performance ---
-            fig2 = px.line(comparison.T, title=f"Performance Comparison: {players[0]} vs {players[1]}",
-                           markers=True)
-            st.plotly_chart(fig2, use_container_width=True)
-        elif len(players) > 2:
-            st.warning("Please select only two players.")
+            show_graph2 = st.checkbox("Show Performance Comparison Graph", value=False)
+            if show_graph2:
+                fig2 = px.line(comparison.T, title=f"Performance Comparison: {players[0]} vs {players[1]}",
+                               markers=True)
+                fig2.update_layout(width=800, margin=dict(l=50, r=50, t=50, b=50))
+                st.plotly_chart(fig2, use_container_width=False)
 
 # --- STANDINGS TAB ---
 with tab2:
     st.title("League Standings")
-
     st.markdown("""
     <p style="text-align: center; font-size: 18px; color: white;">
         Click the button below to view the latest standings.
@@ -162,7 +166,6 @@ with tab2:
 with tab3:
     st.title("Fixtures")
 
-    # Convert to DataFrame and Filter
     df_fixtures = pd.DataFrame([
         ("February 3, 2025", "Trakas HDSPM", "9:00 PM"),
         ("March 3, 2025", "FC Wockhardt", "9:00 PM"),
