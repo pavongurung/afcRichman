@@ -68,7 +68,7 @@ df = fetch_data(sheet_url)
 # --- PLAYER STATS TAB ---
 with tab1:
     st.subheader("Player Stats")
-    
+
     # --- Add Caption (Q4G League Disclaimer) ---
     st.markdown(
         "<p style='font-size:14px; color:gray; font-style:italic;'>⚠️ These stats are from Q4G League matches only.</p>",
@@ -76,15 +76,27 @@ with tab1:
     )
 
     if not df.empty:
-        # Clean Numeric Columns (Handle NaN Errors)
+        # Convert numeric columns properly
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
-            df[col] = df[col].round(2)  # Round to 2 decimal places
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+        # Define which columns to sum and which to average
+        sum_columns = ["MOTM", "Goals", "Assists", "Pos. Won", "Pos. Lost", "Clean Sheet", "Yellow", "Red", "Saves", "PK Save"]
+        avg_columns = ["Avg Rating", "Shot Acc (%) PG", "Pass Acc (%) PG", "Dribble Succ Rate (%) PG", "Tackle Succ Rate (%) PG"]
+
+        # Sum cumulative stats
+        df[sum_columns] = df[sum_columns].astype(float).sum(axis=0)
+
+        # Average percentage-based stats
+        df[avg_columns] = df[avg_columns].astype(float).mean(axis=0)
+
+        # Round for cleaner formatting
+        df = df.round(1)
 
         # Remove Index and Display Player Stats Table
         st.dataframe(
-            df.set_index("Player").style.format(precision=2),
+            df.set_index("Player").style.format(precision=1),
             use_container_width=True, height=600
         )
 
@@ -95,7 +107,7 @@ with tab1:
             leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].set_index("Player")
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.format(precision=2)
+                leaderboard.style.format(precision=1)
             )
 
         # Player Comparison Section
@@ -105,7 +117,7 @@ with tab1:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
             st.dataframe(
-                comparison[numeric_cols].style.format(precision=2)
+                comparison[numeric_cols].style.format(precision=1)
             )
         elif len(players) > 2:
             st.warning("Please select only two players.")
