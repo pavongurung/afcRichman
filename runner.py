@@ -38,8 +38,9 @@ st.markdown("""
         .stButton button:hover {
             background-color: #c0392b;
         }
-        .dataframe {
+        .fixtures-table {
             text-align: center;
+            font-size: 18px;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
@@ -77,11 +78,11 @@ with tab1:
         numeric_cols = df.select_dtypes(include=["number"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)  # Convert to numeric, replace NaN with 0
-            df[col] = df[col].apply(lambda x: round(x, 2))  # Round to 2 decimal places
+            df[col] = df[col].round(2)  # Round to 2 decimal places
 
         # Remove the Index Column and Center Text
         st.dataframe(
-            df.style.hide(axis="index").set_properties(**{"text-align": "center"}),
+            df.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"}),
             use_container_width=True, height=600
         )
 
@@ -89,10 +90,10 @@ with tab1:
         st.subheader("Top Performers")
         stat_category = st.selectbox("Select Stat Category", numeric_cols)
         if stat_category:
-            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]].set_index("Player")
+            leaderboard = df.nlargest(3, stat_category)[["Player", stat_category]]
             st.write(f"Top 3 Players for {stat_category}:")
             st.dataframe(
-                leaderboard.style.set_properties(**{"text-align": "center"})
+                leaderboard.style.hide(axis="index").format(precision=2).set_properties(**{"text-align": "center"})
             )
 
         # Player Comparison Section
@@ -102,7 +103,7 @@ with tab1:
             comparison = df[df["Player"].isin(players)].set_index("Player")
             st.write(f"Comparison of {players[0]} vs {players[1]}:")
             st.dataframe(
-                comparison[numeric_cols].style.set_properties(**{"text-align": "center"})
+                comparison[numeric_cols].style.format(precision=2).set_properties(**{"text-align": "center"})
             )
         elif len(players) > 2:
             st.warning("Please select only two players.")
@@ -167,11 +168,13 @@ with tab3:
     # Convert to DataFrame and Filter
     df_fixtures = pd.DataFrame(fixtures, columns=["Date", "Opponent", "Time"])
     df_fixtures["DateTime"] = pd.to_datetime(df_fixtures["Date"] + " " + df_fixtures["Time"])
-    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()].drop(columns=["DateTime"])
-
+    upcoming_fixtures = df_fixtures[df_fixtures["DateTime"] >= datetime.now()]
+    
     st.subheader("Upcoming Fixtures")
     st.table(
-        upcoming_fixtures.style.set_properties(**{"text-align": "center"})
+        upcoming_fixtures[["Date", "Opponent", "Time"]]
+        .style.hide(axis="index")
+        .set_properties(**{"text-align": "center"})
     )
 
 # --- Manual Refresh Button ---
